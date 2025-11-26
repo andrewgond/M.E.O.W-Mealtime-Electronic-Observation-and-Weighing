@@ -12,13 +12,13 @@
 
 ---
 
-## 📌 Project Status: Work in Progress (WIP)
+## Project Status: Work in Progress (WIP)
 
 This repository documents the development of the **M.E.O.W. automated pet feeder**, a system that dispenses food and logs pet weight using load cells and RFID identification. The goal is to support long-term tracking of pet health trends such as obesity, malnutrition, or abnormal feeding behavior.
 
 ---
 
-# 📖 Overview
+# Overview
 
 The M.E.O.W. system is designed to:
 
@@ -34,14 +34,14 @@ Unlike typical auto-feeders, M.E.O.W. integrates *health-relevant data logging* 
 
 ---
 
-# 🌍 DEI Commitment
+# DEI Commitment
 
 The project emphasizes accessibility, inclusion, and open-source availability.
 The system aims to be easy to use for any pet owner, with a simple UI and customizable configuration.
 
 ---
 
-# 🏗️ System Architecture
+# System Architecture
 
 ## Top-Level Summary
 
@@ -97,7 +97,7 @@ Browser-based dashboard for monitoring weight trends, adjusting feeding schedule
 
 ---
 
-# 🔌 Interface Definitions
+# Interface Definitions
 
 | Interface           | Description                          |
 | ------------------- | ------------------------------------ |
@@ -113,7 +113,7 @@ Browser-based dashboard for monitoring weight trends, adjusting feeding schedule
 
 ---
 
-# 🧪 Verification Framework
+# Verification Framework
 
 Each subsystem will include:
 
@@ -132,7 +132,7 @@ Example tasks include:
 
 ---
 
-# 📚 References
+# References
 
 A `/docs/references.md` file will be added containing:
 
@@ -143,7 +143,7 @@ A `/docs/references.md` file will be added containing:
 
 ---
 
-# 🧩 Future Work
+# Future Work
 
 ### Technical Recommendations (WIP)
 
@@ -160,7 +160,7 @@ A `/docs/references.md` file will be added containing:
 
 ---
 
-# 📂 Project Roadmap
+# Project Roadmap
 
 ### Phase 1 — Hardware Bring-Up
 
@@ -191,13 +191,8 @@ A `/docs/references.md` file will be added containing:
 
 ---
 
-# 🐾 License
 
-To be decided (MIT / BSD / Apache).
-
----
-
-# 📬 Contact
+# Contact
 
 Project Contributors:
 
