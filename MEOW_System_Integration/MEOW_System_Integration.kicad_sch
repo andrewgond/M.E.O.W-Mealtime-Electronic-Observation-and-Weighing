@@ -1376,6 +1376,48 @@
 		)
 	)
 	(sheet
+		(at 153.67 22.86)
+		(size 25.4 19.05)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "2f4cfb25-b4b2-4aac-8b0a-271dfcc5a9db")
+		(property "Sheetname" "Sensors"
+			(at 153.67 22.1484 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sesnsors.kicad_sch"
+			(at 153.67 42.4946 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "MEOW_System_Integration"
+				(path "/0ce861bb-eae0-445b-b19b-9931a356f2fd"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet
 		(at 30.48 24.13)
 		(size 33.02 17.78)
 		(exclude_from_sim no)
