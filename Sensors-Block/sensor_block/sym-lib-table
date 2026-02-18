@@ -1,0 +1,5 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "MCU_HX711_module")(type "KiCad")(uri "${KIPRJMOD}/MCU_HX711_module.kicad_sym")(options "")(descr ""))
+  (lib (name "MCU_RDM6300_module")(type "KiCad")(uri "${KIPRJMOD}/MCU_RDM6300_module.kicad_sym")(options "")(descr ""))
+)
