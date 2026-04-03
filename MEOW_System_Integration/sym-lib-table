@@ -1,0 +1,5 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "SEN-13879")(type "KiCad")(uri "C:/Users/andre/Documents/School/MEOW/Extra Kicad Libraries/KiCAD_Symbols/SEN-13879.kicad_sym")(options "")(descr ""))
+  (lib (name "RDM6300")(type "KiCad")(uri "C:/Users/andre/Documents/School/MEOW/Extra Kicad Libraries/KiCAD_Symbols/RDM6300.kicad_sym")(options "")(descr ""))
+)

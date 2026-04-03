@@ -5,42 +5,31 @@
 	(uuid "74ccf387-ca74-4c27-b71a-94d6e10ef07c")
 	(paper "A4")
 	(lib_symbols
-		(symbol "54-00166:54-00166"
+		(symbol "Connector:Conn_01x02_Pin"
 			(pin_names
 				(offset 1.016)
+				(hide yes)
 			)
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
 			(property "Reference" "J"
-				(at -7.62 5.08 0)
+				(at 0 2.54 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left bottom)
 				)
 			)
-			(property "Value" "54-00166"
-				(at -7.62 -5.08 0)
+			(property "Value" "Conn_01x02_Pin"
+				(at 0 -5.08 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left bottom)
 				)
 			)
-			(property "Footprint" "54-00166:TENSILITY_54-00166"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify bottom)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" ""
+			(property "Footprint" ""
 				(at 0 0 0)
 				(effects
 					(font
@@ -49,7 +38,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" ""
+			(property "Datasheet" "~"
 				(at 0 0 0)
 				(effects
 					(font
@@ -58,121 +47,56 @@
 					(hide yes)
 				)
 			)
-			(property "PARTREV" "A"
+			(property "Description" "Generic connector, single row, 01x02, script generated"
 				(at 0 0 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify bottom)
 					(hide yes)
 				)
 			)
-			(property "STANDARD" "Manufacturer Recommendations"
+			(property "ki_locked" ""
 				(at 0 0 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify bottom)
-					(hide yes)
 				)
 			)
-			(property "SNAPEDA_PN" "54-00166"
+			(property "ki_keywords" "connector"
 				(at 0 0 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify bottom)
 					(hide yes)
 				)
 			)
-			(property "MAXIMUM_PACKAGE_HEIGHT" "11.2mm"
+			(property "ki_fp_filters" "Connector*:*_1x??_*"
 				(at 0 0 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify bottom)
 					(hide yes)
 				)
 			)
-			(property "MANUFACTURER" "TENSILITY"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify bottom)
-					(hide yes)
-				)
-			)
-			(symbol "54-00166_0_0"
-				(polyline
-					(pts
-						(xy -8.255 3.81) (xy -1.27 3.81)
-					)
+			(symbol "Conn_01x02_Pin_1_1"
+				(rectangle
+					(start 0.8636 0.127)
+					(end 0 -0.127)
 					(stroke
 						(width 0.1524)
 						(type default)
 					)
 					(fill
-						(type none)
+						(type outline)
 					)
 				)
-				(arc
-					(start -8.255 1.27)
-					(mid -9.5194 2.54)
-					(end -8.255 3.81)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -6.35 -1.27) (xy -6.985 -2.54)
-					)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -5.715 -2.54) (xy -6.35 -1.27)
-					)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -3.81 0) (xy -3.81 -2.54)
-					)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -3.81 -2.54) (xy -4.318 -1.27) (xy -3.302 -1.27) (xy -3.81 -2.54)
-					)
+				(rectangle
+					(start 0.8636 -2.413)
+					(end 0 -2.667)
 					(stroke
 						(width 0.1524)
 						(type default)
@@ -183,7 +107,7 @@
 				)
 				(polyline
 					(pts
-						(xy -1.27 4.445) (xy -1.27 3.81)
+						(xy 1.27 0) (xy 0.8636 0)
 					)
 					(stroke
 						(width 0.1524)
@@ -195,7 +119,7 @@
 				)
 				(polyline
 					(pts
-						(xy -1.27 3.81) (xy -1.27 1.27)
+						(xy 1.27 -2.54) (xy 0.8636 -2.54)
 					)
 					(stroke
 						(width 0.1524)
@@ -203,142 +127,40 @@
 					)
 					(fill
 						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -1.27 1.27) (xy -8.255 1.27)
-					)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -1.27 1.27) (xy -1.27 0.635)
-					)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -1.27 0.635) (xy 0 0.635)
-					)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 4.445) (xy -1.27 4.445)
-					)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 0.635) (xy 0 4.445)
-					)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 0) (xy -3.81 0)
-					)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 -2.54) (xy -5.715 -2.54)
-					)
-					(stroke
-						(width 0.1524)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(pin passive line
-					(at 5.08 2.54 180)
-					(length 5.08)
-					(name "~"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-					(number "A"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
 					)
 				)
 				(pin passive line
 					(at 5.08 0 180)
-					(length 5.08)
-					(name "~"
+					(length 3.81)
+					(name "Pin_1"
 						(effects
 							(font
-								(size 1.016 1.016)
+								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "C"
+					(number "1"
 						(effects
 							(font
-								(size 1.016 1.016)
+								(size 1.27 1.27)
 							)
 						)
 					)
 				)
 				(pin passive line
 					(at 5.08 -2.54 180)
-					(length 5.08)
-					(name "~"
+					(length 3.81)
+					(name "Pin_2"
 						(effects
 							(font
-								(size 1.016 1.016)
+								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "B"
+					(number "2"
 						(effects
 							(font
-								(size 1.016 1.016)
+								(size 1.27 1.27)
 							)
 						)
 					)
@@ -1876,6 +1698,16 @@
 	)
 	(wire
 		(pts
+			(xy 81.28 38.1) (xy 81.28 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2cc688e9-3dab-4281-bcb0-7fcc25b30f9a")
+	)
+	(wire
+		(pts
 			(xy 125.73 62.23) (xy 133.35 62.23)
 		)
 		(stroke
@@ -1926,7 +1758,7 @@
 	)
 	(wire
 		(pts
-			(xy 81.28 35.56) (xy 86.36 35.56)
+			(xy 81.28 35.56) (xy 93.98 35.56)
 		)
 		(stroke
 			(width 0)
@@ -2086,7 +1918,7 @@
 	)
 	(wire
 		(pts
-			(xy 93.98 35.56) (xy 142.24 35.56)
+			(xy 132.08 35.56) (xy 142.24 35.56)
 		)
 		(stroke
 			(width 0)
@@ -2133,6 +1965,16 @@
 			(type default)
 		)
 		(uuid "d8b0a28f-49e8-41f5-82d0-06ca1f572121")
+	)
+	(wire
+		(pts
+			(xy 96.52 35.56) (xy 124.46 35.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e113c78a-6945-4cf8-ab7a-bdfe215c11f4")
 	)
 	(wire
 		(pts
@@ -2195,7 +2037,7 @@
 		(uuid "eba95eb0-e19f-467c-92ff-b3e53b6496d8")
 	)
 	(global_label "Vout_12V"
-		(shape input)
+		(shape bidirectional)
 		(at 142.24 35.56 0)
 		(fields_autoplaced yes)
 		(effects
@@ -2206,7 +2048,7 @@
 		)
 		(uuid "0c39d16c-8ca8-473d-8acd-14791242a03d")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 153.8127 35.56 0)
+			(at 154.924 35.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2239,7 +2081,7 @@
 		)
 	)
 	(global_label "Vout_5V"
-		(shape output)
+		(shape bidirectional)
 		(at 203.2 44.45 180)
 		(fields_autoplaced yes)
 		(effects
@@ -2250,7 +2092,7 @@
 		)
 		(uuid "15f8695b-c99c-48e9-ba3e-3e01ee4eac34")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 192.8368 44.45 0)
+			(at 191.7255 44.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2283,7 +2125,7 @@
 		)
 	)
 	(global_label "Vout_3.3V"
-		(shape input)
+		(shape bidirectional)
 		(at 158.75 95.25 0)
 		(fields_autoplaced yes)
 		(effects
@@ -2294,7 +2136,7 @@
 		)
 		(uuid "9104a19b-0fe5-48e2-871d-538e53237a26")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 170.9275 95.25 0)
+			(at 172.0388 95.25 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2305,7 +2147,7 @@
 		)
 	)
 	(global_label "Vout_3.3V"
-		(shape output)
+		(shape bidirectional)
 		(at 203.2 62.23 180)
 		(fields_autoplaced yes)
 		(effects
@@ -2316,7 +2158,7 @@
 		)
 		(uuid "9b6e932c-0bde-4ef0-95aa-91a48f8d80a1")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 191.0225 62.23 0)
+			(at 189.9112 62.23 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2327,7 +2169,7 @@
 		)
 	)
 	(global_label "Vout_12V"
-		(shape output)
+		(shape bidirectional)
 		(at 205.74 29.21 180)
 		(fields_autoplaced yes)
 		(effects
@@ -2338,7 +2180,7 @@
 		)
 		(uuid "b6c52855-aef6-4684-8705-06792f94de63")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 194.1673 29.21 0)
+			(at 193.056 29.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2349,7 +2191,7 @@
 		)
 	)
 	(global_label "Vout_5V"
-		(shape input)
+		(shape bidirectional)
 		(at 157.48 62.23 0)
 		(fields_autoplaced yes)
 		(effects
@@ -2360,7 +2202,7 @@
 		)
 		(uuid "eeb49b49-33c5-4316-8999-318a97cb6e9e")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 167.8432 62.23 0)
+			(at 168.9545 62.23 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2372,7 +2214,7 @@
 	)
 	(symbol
 		(lib_id "Device:D_Schottky")
-		(at 90.17 35.56 180)
+		(at 128.27 35.56 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2381,7 +2223,7 @@
 		(fields_autoplaced yes)
 		(uuid "0b9ecaaa-75cf-49ef-8ce7-3682f5e0a0da")
 		(property "Reference" "D1"
-			(at 90.4875 29.21 0)
+			(at 128.5875 29.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2389,15 +2231,15 @@
 			)
 		)
 		(property "Value" "1N5820"
-			(at 90.4875 31.75 0)
+			(at 128.5875 31.75 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Footprint" "footprints:CR_0-E3&slash_54_VIS"
-			(at 90.17 35.56 0)
+		(property "Footprint" "Diode_SMD:D_SMA"
+			(at 128.27 35.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2406,7 +2248,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.vishay.com/docs/88526/1n5820.pdf"
-			(at 90.17 35.56 0)
+			(at 128.27 35.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2415,7 +2257,7 @@
 			)
 		)
 		(property "Description" "Schottky diode"
-			(at 90.17 35.56 0)
+			(at 128.27 35.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2424,7 +2266,7 @@
 			)
 		)
 		(property "Sim.Device" ""
-			(at 90.17 35.56 0)
+			(at 128.27 35.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2433,7 +2275,7 @@
 			)
 		)
 		(property "Sim.Library" ""
-			(at 90.17 35.56 0)
+			(at 128.27 35.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2442,7 +2284,7 @@
 			)
 		)
 		(property "Sim.Name" ""
-			(at 90.17 35.56 0)
+			(at 128.27 35.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2451,7 +2293,34 @@
 			)
 		)
 		(property "Sim.Pins" ""
-			(at 90.17 35.56 0)
+			(at 128.27 35.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 128.27 35.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 128.27 35.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
+			(at 128.27 35.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2607,6 +2476,33 @@
 				(hide yes)
 			)
 		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 113.03 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 113.03 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
+			(at 113.03 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "3"
 			(uuid "e77563b8-e84a-4661-9d8a-e6f2c143ec23")
 		)
@@ -2737,7 +2633,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "MountingHole:MountingHole_2.2mm_M2"
+		(property "Footprint" "MountingHole:MountingHole_3mm"
 			(at 38.1 69.85 0)
 			(effects
 				(font
@@ -2792,6 +2688,33 @@
 			)
 		)
 		(property "Sim.Pins" ""
+			(at 38.1 69.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 38.1 69.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 38.1 69.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
 			(at 38.1 69.85 0)
 			(effects
 				(font
@@ -2843,7 +2766,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "MountingHole:MountingHole_2.2mm_M2"
+		(property "Footprint" "MountingHole:MountingHole_3mm"
 			(at 38.1 44.45 0)
 			(effects
 				(font
@@ -2898,6 +2821,33 @@
 			)
 		)
 		(property "Sim.Pins" ""
+			(at 38.1 44.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 38.1 44.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 38.1 44.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
 			(at 38.1 44.45 0)
 			(effects
 				(font
@@ -3020,7 +2970,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "MountingHole:MountingHole_2.2mm_M2"
+		(property "Footprint" "MountingHole:MountingHole_3mm"
 			(at 38.1 57.15 0)
 			(effects
 				(font
@@ -3075,6 +3025,33 @@
 			)
 		)
 		(property "Sim.Pins" ""
+			(at 38.1 57.15 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 38.1 57.15 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 38.1 57.15 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
 			(at 38.1 57.15 0)
 			(effects
 				(font
@@ -3261,6 +3238,33 @@
 				(hide yes)
 			)
 		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 228.6 29.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 228.6 29.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
+			(at 228.6 29.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "9753980b-4c2b-440b-9786-76d87cb74a49")
 		)
@@ -3380,7 +3384,7 @@
 				)
 			)
 		)
-		(property "Footprint" "footprints:WE-TIS_8075"
+		(property "Footprint" "Inductor_SMD:L_12x12mm_H4.5mm"
 			(at 144.78 95.25 0)
 			(effects
 				(font
@@ -3436,6 +3440,33 @@
 		)
 		(property "Sim.Pins" ""
 			(at 144.78 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 144.78 95.25 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 144.78 95.25 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
+			(at 144.78 95.25 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3531,134 +3562,6 @@
 			(project ""
 				(path "/0ce861bb-eae0-445b-b19b-9931a356f2fd/5b5632c7-3164-4d36-be08-a5974369bd7e"
 					(reference "#PWR0103")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "54-00166:54-00166")
-		(at 76.2 38.1 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "6a1a38f7-7895-4dbd-b5d4-669a45259c8d")
-		(property "Reference" "J1"
-			(at 71.4403 29.21 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "54-00166"
-			(at 71.4403 31.75 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "footprints:TENSILITY_54-00166"
-			(at 76.2 38.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify bottom)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 76.2 38.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 76.2 38.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "PARTREV" "A"
-			(at 76.2 38.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify bottom)
-				(hide yes)
-			)
-		)
-		(property "STANDARD" "Manufacturer Recommendations"
-			(at 76.2 38.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify bottom)
-				(hide yes)
-			)
-		)
-		(property "SNAPEDA_PN" "54-00166"
-			(at 76.2 38.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify bottom)
-				(hide yes)
-			)
-		)
-		(property "MAXIMUM_PACKAGE_HEIGHT" "11.2mm"
-			(at 76.2 38.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify bottom)
-				(hide yes)
-			)
-		)
-		(property "MANUFACTURER" "TENSILITY"
-			(at 76.2 38.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify bottom)
-				(hide yes)
-			)
-		)
-		(pin "A"
-			(uuid "0ae2d150-37df-44ff-8225-581584efe42b")
-		)
-		(pin "B"
-			(uuid "a0488d14-8cdd-4442-88a0-0ae657f3d412")
-		)
-		(pin "C"
-			(uuid "54247b82-a0ba-4724-98a9-de3990c24cea")
-		)
-		(instances
-			(project ""
-				(path "/06debb34-0aab-4f87-89d5-06d586594dcd"
-					(reference "J1")
-					(unit 1)
-				)
-			)
-			(project ""
-				(path "/0ce861bb-eae0-445b-b19b-9931a356f2fd/5b5632c7-3164-4d36-be08-a5974369bd7e"
-					(reference "J1")
 					(unit 1)
 				)
 			)
@@ -3808,6 +3711,101 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector:Conn_01x02_Pin")
+		(at 76.2 35.56 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "7464c083-1987-4225-ba7a-638ece225950")
+		(property "Reference" "JP1"
+			(at 76.835 30.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "Power Connector"
+			(at 76.835 33.02 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Connector_JST:JST_EH_B2B-EH-A_1x02_P2.50mm_Vertical"
+			(at 76.2 35.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 76.2 35.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x02, script generated"
+			(at 76.2 35.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 76.2 35.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 76.2 35.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
+			(at 76.2 35.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "bd30a183-79b6-4ead-9c39-f5b61993e365")
+		)
+		(pin "2"
+			(uuid "83f10fea-0ab7-4a0a-840c-99a3bef0e055")
+		)
+		(instances
+			(project ""
+				(path "/0ce861bb-eae0-445b-b19b-9931a356f2fd/5b5632c7-3164-4d36-be08-a5974369bd7e"
+					(reference "JP1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Diode:1N5820")
 		(at 133.35 66.04 270)
 		(unit 1)
@@ -3835,7 +3833,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "footprints:CR_0-E3&slash_54_VIS"
+		(property "Footprint" "Diode_SMD:D_SMA"
 			(at 128.905 66.04 0)
 			(effects
 				(font
@@ -3898,6 +3896,33 @@
 				(hide yes)
 			)
 		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 133.35 66.04 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 133.35 66.04 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
+			(at 133.35 66.04 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "779f7d03-7f82-4533-8975-edc3de224356")
 		)
@@ -3947,7 +3972,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "footprints:CR_0-E3&slash_54_VIS"
+		(property "Footprint" "Diode_SMD:D_SMA"
 			(at 130.175 99.06 0)
 			(effects
 				(font
@@ -4010,6 +4035,33 @@
 				(hide yes)
 			)
 		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 134.62 99.06 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 134.62 99.06 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
+			(at 134.62 99.06 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "ee0e2a21-ce87-4339-a962-95ae1cb92036")
 		)
@@ -4059,7 +4111,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "footprints:CAP_YX_6P3X11_RUB"
+		(property "Footprint" "Capacitor_SMD:CP_Elec_6.3x7.7"
 			(at 150.8252 69.85 0)
 			(effects
 				(font
@@ -4114,6 +4166,33 @@
 			)
 		)
 		(property "Sim.Pins" ""
+			(at 149.86 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 149.86 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 149.86 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
 			(at 149.86 66.04 0)
 			(effects
 				(font
@@ -4198,6 +4277,33 @@
 				(hide yes)
 			)
 		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 114.3 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 114.3 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
+			(at 114.3 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "94e5b0b2-becc-4000-9bea-58d834078d3a")
 		)
@@ -4254,7 +4360,7 @@
 				)
 			)
 		)
-		(property "Footprint" "footprints:WE-TIS_8075"
+		(property "Footprint" "Inductor_SMD:L_12x12mm_H4.5mm"
 			(at 143.51 62.23 0)
 			(effects
 				(font
@@ -4317,6 +4423,33 @@
 				(hide yes)
 			)
 		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 143.51 62.23 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 143.51 62.23 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
+			(at 143.51 62.23 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "11c85eb2-6dd3-494b-bc2f-994593e484f9")
 		)
@@ -4366,7 +4499,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "MountingHole:MountingHole_2.2mm_M2"
+		(property "Footprint" "MountingHole:MountingHole_3mm"
 			(at 38.1 31.75 0)
 			(effects
 				(font
@@ -4421,6 +4554,33 @@
 			)
 		)
 		(property "Sim.Pins" ""
+			(at 38.1 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 38.1 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 38.1 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
 			(at 38.1 31.75 0)
 			(effects
 				(font
@@ -4616,7 +4776,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "footprints:CAP_YX_10X12P5_RUB"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 88.5952 114.3 0)
 			(effects
 				(font
@@ -4671,6 +4831,33 @@
 			)
 		)
 		(property "Sim.Pins" ""
+			(at 87.63 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 87.63 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 87.63 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
 			(at 87.63 110.49 0)
 			(effects
 				(font
@@ -4791,6 +4978,33 @@
 				(hide yes)
 			)
 		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 227.33 44.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 227.33 44.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
+			(at 227.33 44.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "1c6a4712-0fcc-4d54-8670-6338fc1e253b")
 		)
@@ -4895,6 +5109,33 @@
 			)
 		)
 		(property "Sim.Pins" ""
+			(at 227.33 62.23 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 227.33 62.23 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 227.33 62.23 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
 			(at 227.33 62.23 0)
 			(effects
 				(font
@@ -5023,7 +5264,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "footprints:CAP_YX_6P3X11_RUB"
+		(property "Footprint" "Capacitor_SMD:CP_Elec_6.3x7.7"
 			(at 152.0952 102.87 0)
 			(effects
 				(font
@@ -5078,6 +5319,33 @@
 			)
 		)
 		(property "Sim.Pins" ""
+			(at 151.13 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 151.13 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 151.13 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
 			(at 151.13 99.06 0)
 			(effects
 				(font
@@ -5180,6 +5448,103 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector:Conn_01x02_Pin")
+		(at 96.52 30.48 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d39cf64b-ab25-4c07-b1d3-14b43d9a2eb0")
+		(property "Reference" "JP2"
+			(at 97.79 29.8449 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Power Switch Connector"
+			(at 97.79 32.3849 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_JST:JST_EH_B2B-EH-A_1x02_P2.50mm_Vertical"
+			(at 96.52 30.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 96.52 30.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x02, script generated"
+			(at 96.52 30.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 96.52 30.48 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 96.52 30.48 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
+			(at 96.52 30.48 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "8202a8b4-d69f-4cb7-b898-47979600e63d")
+		)
+		(pin "1"
+			(uuid "48ad342e-b5d4-44ee-b278-41719a2057e6")
+		)
+		(instances
+			(project ""
+				(path "/0ce861bb-eae0-445b-b19b-9931a356f2fd/5b5632c7-3164-4d36-be08-a5974369bd7e"
+					(reference "JP2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:C")
 		(at 87.63 74.93 0)
 		(unit 1)
@@ -5207,7 +5572,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "footprints:CAP_YX_10X12P5_RUB"
+		(property "Footprint" "Capacitor_SMD:CP_Elec_8x10"
 			(at 88.5952 78.74 0)
 			(effects
 				(font
@@ -5262,6 +5627,33 @@
 			)
 		)
 		(property "Sim.Pins" ""
+			(at 87.63 74.93 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" ""
+			(at 87.63 74.93 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" ""
+			(at 87.63 74.93 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" ""
 			(at 87.63 74.93 0)
 			(effects
 				(font
