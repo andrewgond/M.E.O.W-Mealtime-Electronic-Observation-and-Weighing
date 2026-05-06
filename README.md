@@ -7,7 +7,7 @@
 **An Open-Source Smart Pet Feeder with Integrated Weight Tracking**
 *Senior Design Capstone — Oregon State University*
 *Andrew Gondoputro
-*Ahmad Alajami
+*Ahmad Alajmi
 *Craig Kelley
 
 ---
