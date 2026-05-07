@@ -55,6 +55,11 @@ float feed_grams(float targetGrams) {
 		// HX711 needs ~100ms per reading at 10Hz — SETTLE_MS must be > 100
 		delay(SETTLE_MS);
 
+		// Keep web server alive during long dispenses
+		// server is defined in website.h which includes feeder.h
+		extern void website_handle_client();
+		website_handle_client();
+
 		// Read how much has been added to the bowl
 		// Weight goes UP so dispensed = current - baseline
 		if (scale_food.is_ready()) {

@@ -2,7 +2,9 @@
 #include <sqlite3.h>
 #include <SD.h>
 #include <vector>
-#include "feeder.h"
+
+// Forward declaration — feed_grams defined in feeder.h
+float feed_grams(float targetGrams);
 
 const char* DB_FILE = "/sd/test.db";
 #define DATA_TABLE "data_table"
@@ -17,7 +19,7 @@ struct Entry { // 24B
 	float platform_weight;
 };
 
-#define ENTRY_BUF_SIZE 32 // saves every half minute (could take longer)
+#define ENTRY_BUF_SIZE 6 // flushes every ~6 seconds
 std::array<Entry, ENTRY_BUF_SIZE> entry_buf;
 int entry_buf_size = 0;
 
@@ -129,21 +131,32 @@ bool load_schedules() {
 	sqlite3_close(db);
 
 	if (!schedules.empty()) {
+		struct tm timeinfo;
 		uint64_t now = get_time();
-		uint64_t seconds_today = now % INTERVAL_24H;
-		interval_num = now / INTERVAL_24H;
+		uint64_t today = now / INTERVAL_24H;
 
-		bool found = false;
-		for (int i = 0; i < schedules.size(); ++i) {
-			if (seconds_today < schedules[i].base_time) {
-				schedule_idx = i;
-				found = true;
-				break;
+		// Default: mark today as done so already-passed schedules don't fire on boot
+		interval_num = today;
+		schedule_idx = 0;
+
+		if (getLocalTime(&timeinfo)) {
+			uint64_t seconds_today = timeinfo.tm_hour * 3600 + timeinfo.tm_min * 60 + timeinfo.tm_sec;
+
+			// Find next schedule that hasn't passed yet today
+			bool found = false;
+			for (int i = 0; i < (int)schedules.size(); ++i) {
+				if (seconds_today < schedules[i].base_time) {
+					schedule_idx = i;
+					interval_num = today - 1; // allow firing today for future schedules
+					found = true;
+					break;
+				}
 			}
-		}
-		if (!found) {
-			schedule_idx = 0;
-			interval_num += 1;
+			if (!found) {
+				// All schedules already passed today — fire from beginning tomorrow
+				schedule_idx = 0;
+				interval_num = today;
+			}
 		}
 	}
 
@@ -286,7 +299,9 @@ void query_entry_range(uint64_t start, uint64_t end, uint32_t cat_id, void (*cal
 
 	const char *sql =	"SELECT * FROM " DATA_TABLE " "
 						"WHERE (time BETWEEN ? AND ?) "
-						"AND (? = 0 OR assumed_cat_id = ?);";
+						"AND (? = 0 OR assumed_cat_id = ?) "
+						"ORDER BY time DESC "
+						"LIMIT 200;";
 	sqlite3_stmt *res;
 	if (sqlite3_prepare_v2(db, sql, -1, &res, NULL) == SQLITE_OK) {
 		sqlite3_bind_int64(res, 1, start);
@@ -432,30 +447,30 @@ int add_schedule(uint64_t base_time, float grams) {
 			s.base_time = base_time;
 			s.grams = grams;
 
-			uint64_t current_target = 0;
-			bool was_empty = schedules.empty();
-			if (!was_empty) {
-				current_target = interval_num * INTERVAL_24H + schedules[schedule_idx].base_time;
+			// Use local time to determine if schedule fires today or tomorrow
+			struct tm timeinfo;
+			uint64_t now = get_time();
+			uint64_t today = now / INTERVAL_24H;
+			uint64_t local_seconds = 0;
+			if (getLocalTime(&timeinfo)) {
+				local_seconds = timeinfo.tm_hour * 3600 + timeinfo.tm_min * 60 + timeinfo.tm_sec;
 			}
 
 			int insert_pos = 0;
-			while (insert_pos < schedules.size() && schedules[insert_pos].base_time < base_time) {
+			while (insert_pos < (int)schedules.size() && schedules[insert_pos].base_time < base_time) {
 				insert_pos += 1;
 			}
 			schedules.insert(schedules.begin() + insert_pos, s);
 
-			uint64_t now = get_time();
-			uint64_t current_day_start = now - (now % INTERVAL_24H);
-			uint64_t s_target = current_day_start + base_time;
-
-			if (s_target <= now) s_target += INTERVAL_24H;
-			if (was_empty || s_target < current_target) {
+			// If schedule hasn't passed yet today, allow it to fire today
+			if (local_seconds < base_time) {
 				schedule_idx = insert_pos;
-				interval_num = s_target / INTERVAL_24H;
-			} else if (insert_pos <= schedule_idx) {
-				schedule_idx += 1;
+				interval_num = today - 1; // allow firing today
+			} else {
+				// Already past today — fire tomorrow
+				if (insert_pos <= schedule_idx) schedule_idx += 1;
 			}
-			if (DEBUG_MODE) Serial.println("Schedule added.");
+			if (DEBUG_MODE) Serial.printf("Schedule added. idx=%d interval_num=%llu\n", schedule_idx, interval_num);
 		} else {
 			if (DEBUG_MODE) Serial.println("Failed to add schedule.");
 		}
@@ -528,14 +543,25 @@ void backup_schedule() {
 void handle_schedules() {
 	if (!schedules_loaded) backup_schedule();
 	if (schedules.empty()) return;
-	auto now = get_time();
-	auto next = schedules[schedule_idx];
-	if (now > next.base_time + interval_num * INTERVAL_24H) {
+
+	struct tm timeinfo;
+	if (!getLocalTime(&timeinfo)) return;
+	uint64_t seconds_today = timeinfo.tm_hour * 3600 + timeinfo.tm_min * 60 + timeinfo.tm_sec;
+	uint64_t today = get_time() / INTERVAL_24H;
+
+	if (schedule_idx >= (int)schedules.size()) schedule_idx = 0;
+	auto& next = schedules[schedule_idx];
+
+	if (seconds_today >= next.base_time && interval_num < today) {
+		if (DEBUG_MODE) Serial.printf("[SCHED] Firing idx=%d base_time=%llu grams=%.1f\n",
+			schedule_idx, next.base_time, next.grams);
 		feed_grams(next.grams);
+
 		schedule_idx += 1;
-		if (schedule_idx >= schedules.size()) {
+		if (schedule_idx >= (int)schedules.size()) {
 			schedule_idx = 0;
-			interval_num += 1;
+			interval_num = today;
 		}
+		if ((int)schedules.size() == 1) interval_num = today;
 	}
 }

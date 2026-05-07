@@ -144,10 +144,9 @@ void loop() {
 		last_push = millis();
 		best_representation.time = get_time();
 
-		// only tracks when cats are present
+		// determine the cat if on platform
+		static uint32_t active_cat = 0;
 		if (best_representation.platform_weight != 0) {
-			// determine the cat
-			static uint32_t active_cat = 0;
 			if (best_representation.rfid != 0) {
 				rfid_scanned_this_session = true;
 				active_cat = map_rfid_to_cat(best_representation.rfid);
@@ -155,17 +154,17 @@ void loop() {
 				if (!rfid_scanned_this_session) {
 					active_cat = map_weight_to_cat(best_representation.platform_weight);
 				}
-				// if rfid was scanned, just use previous active_cat
 			}
 			best_representation.assumed_cat_id = active_cat;
-
 			if (best_representation.rfid != 0) lastRfidTag = best_representation.rfid;
-			
-			// push entry to db
-			if (is_db_connected()) {
-				if (DEBUG_MODE) print_entry(best_representation);
-				push_entry(best_representation);
-			}
+		} else {
+			best_representation.assumed_cat_id = 0;
+		}
+
+		// always push entry to db (food weight logged even without cat)
+		if (is_db_connected()) {
+			if (DEBUG_MODE) print_entry(best_representation);
+			push_entry(best_representation);
 		}
 
 		// reset best rep
@@ -176,11 +175,4 @@ void loop() {
 
 	// keep web server alive
 	server.handleClient();
-
-	// TODO: should send errors to website, maybe have this inside the server.handle instead?
-	if (is_wifi_connected()) {
-		// auto status_time = is_time_synced();
-		// auto status_db = is_db_connected();
-		// auto status_write = !write_err;
-	}
 }

@@ -3,13 +3,15 @@
 #include "esp_sntp.h"
 
 // wifi
-const char* WIFI_SSID		= "YOUR_WIFI_SSD";
-const char* WIFI_PASSWORD	= "YOUR_WIFI_PASS";
+const char* WIFI_SSID		= "ESP";
+const char* WIFI_PASSWORD	= "11223344";
+// const char* WIFI_SSID		= "ESP";
+// const char* WIFI_PASSWORD	= "11223344";
 
 // time (PDT)
 const char* TIME_NTP_SERVER	= "pool.ntp.org";
 constexpr long gmtOffset_sec = -8 * 60 * 60;
-constexpr int daylightOffset_sec = 1 * 60 * 30;
+constexpr int daylightOffset_sec = 1 * 60 * 60;
 
 bool synced = false;
 

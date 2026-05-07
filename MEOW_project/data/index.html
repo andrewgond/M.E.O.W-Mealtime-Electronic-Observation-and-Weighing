@@ -617,7 +617,7 @@
     <div id="sdLogsStatus" style="font-size:13px;color:var(--muted);margin-bottom:16px;">Select a date filter above and click Refresh.</div>
 
     <!-- Graphs -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;" id="sdGraphs" style="display:none;">
+    <div style="display:none;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;" id="sdGraphs">
       <div class="card">
         <div class="card-label">Cat Weight Over Time</div>
         <canvas id="chartPlatform" height="180"></canvas>
@@ -698,8 +698,8 @@
         t.classList.add('active');
     });
     if (page === 'history')  renderHistory();
-    if (page === 'cats')     renderCats();
-    if (page === 'schedule') renderSchedule();
+    if (page === 'cats')     { renderCats(); syncCatsFromESP32(); }
+    if (page === 'schedule') { renderSchedule(); syncSchedulesFromESP32(); }
     if (page === 'dashboard') populateCatSelect();
   }
 
@@ -785,6 +785,14 @@
 
       // RFID — included in /data response
       updateRfidDisplay(data.rfid || 0);
+
+      // System status pills
+      updateSystemStatus(data);
+
+      // Refresh cats grid goal bars if on cats page
+      if (document.getElementById('page-cats').classList.contains('active')) {
+        renderCats();
+      }
 
       setStatus('Live data connected.', '');
     } catch {
@@ -1159,6 +1167,81 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  // Syncs cat profiles from ESP32 DB into local state
+  async function syncCatsFromESP32() {
+    try {
+      const res  = await fetch('/getCats');
+      const data = await res.json();
+      if (data.length === 0) return;
+
+      // Merge ESP32 cats into local state by espId
+      data.forEach(c => {
+        const existing = cats.find(lc => lc.espId == c.id);
+        if (!existing) {
+          // Add cats from ESP32 that aren't in localStorage
+          cats.push({
+            id:        String(c.id),
+            espId:     c.id,
+            name:      c.name,
+            dailyGoal: 200,      // default — ESP32 doesn't store daily goal
+            rfid:      c.rfid ? '0x' + c.rfid.toString(16).toUpperCase().padStart(8,'0') : null,
+            photo:     null
+          });
+        }
+      });
+
+      // Remove local cats that no longer exist on ESP32
+      cats = cats.filter(lc => {
+        if (!lc.espId) return true; // keep locally-only cats
+        return data.some(c => c.id == lc.espId);
+      });
+
+      saveCats();
+      renderCats();
+      populateCatSelect();
+    } catch {}
+  }
+
+  // Syncs all schedules from ESP32 DB into local state on page load
+  async function syncSchedulesFromESP32() {
+    try {
+      const res  = await fetch('/getSchedules');
+      const data = await res.json();
+
+      // Clear and rebuild from ESP32 — ESP32 is source of truth
+      // Assign all schedules to first cat if no cat mapping exists
+      data.forEach(s => {
+        let found = false;
+        for (const catId of Object.keys(schedules)) {
+          if (schedules[catId].find(ls => ls.espId === s.id)) {
+            found = true;
+            break;
+          }
+        }
+        if (!found && cats.length > 0) {
+          const catId = cats[0].id;
+          if (!schedules[catId]) schedules[catId] = [];
+          schedules[catId].push({
+            type:   'fixed',
+            time:   secondsToTime(s.base_time),
+            amount: Math.round(s.grams),
+            espId:  s.id
+          });
+        }
+      });
+
+      // Remove local schedules whose espId no longer exists on ESP32
+      for (const catId of Object.keys(schedules)) {
+        schedules[catId] = schedules[catId].filter(s =>
+          !s.espId || data.some(es => es.id === s.espId)
+        );
+      }
+
+      saveSchedules();
+      renderSchedule();
+    } catch {}
+  }
+
   /* ══════════════════════════════════════
      SCHEDULE PAGE
   ══════════════════════════════════════ */
@@ -1274,9 +1357,9 @@
     document.getElementById('field-interval-' + catId).style.display = type === 'interval' ? '' : 'none';
   }
 
-  function addSchedule(catId) {
-    const type     = document.getElementById('type-fixed-' + catId).classList.contains('active') ? 'fixed' : 'interval';
-    const amount   = parseInt(document.getElementById('sched-amount-' + catId).value);
+  async function addSchedule(catId) {
+    const type   = document.getElementById('type-fixed-' + catId).classList.contains('active') ? 'fixed' : 'interval';
+    const amount = parseInt(document.getElementById('sched-amount-' + catId).value);
     if (!amount || amount < 1) return;
 
     if (!schedules[catId]) schedules[catId] = [];
@@ -1284,30 +1367,57 @@
     if (type === 'fixed') {
       const time = document.getElementById('sched-time-' + catId).value;
       if (!time) { alert('Please enter a time.'); return; }
-      schedules[catId].push({ type: 'fixed', time, amount });
-      // Sort by time
+
+      // Convert HH:MM to seconds since midnight for ESP32
+      const [h, m] = time.split(':').map(Number);
+      const base_time = h * 3600 + m * 60;
+
+      // Save to ESP32 DB
+      let espId = null;
+      try {
+        const body = new URLSearchParams({ base_time, grams: amount });
+        const res  = await fetch('/addSchedule', { method: 'POST', body });
+        if (res.ok) {
+          const data = await res.json();
+          espId = data.id;
+        }
+      } catch {}
+
+      schedules[catId].push({ type: 'fixed', time, amount, espId });
       schedules[catId].sort((a, b) => {
         if (a.type !== 'fixed') return 1;
         if (b.type !== 'fixed') return -1;
         return a.time.localeCompare(b.time);
       });
+
     } else {
       const intervalHours = parseInt(document.getElementById('sched-interval-' + catId).value);
       if (!intervalHours || intervalHours < 1) return;
-      schedules[catId].push({ type: 'interval', intervalHours, amount });
+      // Interval schedules use base_time = interval in seconds
+      const base_time = intervalHours * 3600;
+      let espId = null;
+      try {
+        const body = new URLSearchParams({ base_time, grams: amount });
+        const res  = await fetch('/addSchedule', { method: 'POST', body });
+        if (res.ok) { const data = await res.json(); espId = data.id; }
+      } catch {}
+      schedules[catId].push({ type: 'interval', intervalHours, amount, espId });
     }
 
     saveSchedules();
     renderScheduleList(catId);
-    pushSchedulesToESP32();
   }
 
-  function deleteSchedule(catId, index) {
+  async function deleteSchedule(catId, index) {
     if (!schedules[catId]) return;
+    const s = schedules[catId][index];
+    // Remove from ESP32 DB if it was saved there
+    if (s && s.espId) {
+      try { await fetch('/removeSchedule?id=' + s.espId); } catch {}
+    }
     schedules[catId].splice(index, 1);
     saveSchedules();
     renderScheduleList(catId);
-    pushSchedulesToESP32();
   }
 
   // Formats "14:30" → "2:30 PM"
@@ -1319,18 +1429,40 @@
     return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
   }
 
-  // Sends all schedules to the ESP32 via /setSchedule
+  // Sends a new schedule to the ESP32 database
   async function pushSchedulesToESP32() {
+    // No longer used — schedules go directly via /addSchedule
+  }
+
+  // Loads all schedules from ESP32 DB and re-renders the schedule page
+  async function loadSchedulesFromESP32(catId) {
     try {
-      const payload = JSON.stringify(schedules);
-      await fetch('/setSchedule', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: payload
+      const res  = await fetch('/getSchedules');
+      const data = await res.json();
+      // Store by catId — since ESP32 schedules aren't per-cat yet,
+      // we assign them to whichever cat section triggered the load
+      if (!schedules[catId]) schedules[catId] = [];
+      // Merge ESP32 schedules into local state by id
+      data.forEach(s => {
+        const exists = schedules[catId].find(ls => ls.espId === s.id);
+        if (!exists) {
+          schedules[catId].push({
+            type: 'fixed',
+            time: secondsToTime(s.base_time),
+            amount: Math.round(s.grams),
+            espId: s.id
+          });
+        }
       });
-    } catch {
-      // ESP32 unreachable — schedules still saved in localStorage
-    }
+      saveSchedules();
+      renderScheduleList(catId);
+    } catch {}
+  }
+
+  function secondsToTime(secs) {
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
   }
 
   // Updates the clock status bar on the Schedule page
@@ -1354,6 +1486,28 @@
 
 
   /* ══════════════════════════════════════
+     SD AUTO-REFRESH
+  ══════════════════════════════════════ */
+  let sdRefreshInterval = null;
+
+  function startSdAutoRefresh() {
+    stopSdAutoRefresh();
+    // Auto-refresh every 10 seconds while on history page
+    sdRefreshInterval = setInterval(() => {
+      if (document.getElementById('page-history').classList.contains('active')) {
+        loadSdLogs();
+      }
+    }, 10000);
+  }
+
+  function stopSdAutoRefresh() {
+    if (sdRefreshInterval) {
+      clearInterval(sdRefreshInterval);
+      sdRefreshInterval = null;
+    }
+  }
+
+  /* ══════════════════════════════════════
      SD CARD LOGS + GRAPHS
   ══════════════════════════════════════ */
   let chartPlatformInstance = null;
@@ -1372,9 +1526,15 @@
 
     let start = 0;
     let end   = Math.floor(Date.now() / 1000);
+
     if (dateVal) {
+      // User picked a specific date — query that full UTC day
       start = Math.floor(new Date(dateVal + 'T00:00:00').getTime() / 1000);
       end   = Math.floor(new Date(dateVal + 'T23:59:59').getTime() / 1000);
+    } else {
+      // No filter — query last 24 hours
+      start = end - (24 * 60 * 60);
+      statusEl.textContent = 'Showing last 24 hours. Select a date to filter.';
     }
 
     let cat_id = 0;
@@ -1394,13 +1554,13 @@
 
       statusEl.textContent = `${data.length} entries from SD card`;
 
-      // ── Build chart data ──────────────────────────────
-      const labels         = data.map(e => new Date(e.time * 1000).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }));
-      const platformValues = data.map(e => parseFloat(e.platform_weight));
-      const foodValues     = data.map(e => parseFloat(e.food_weight));
+      // DB returns newest first — reverse for charts so time goes left to right
+      const sorted         = [...data].reverse();
+      const labels         = sorted.map(e => new Date(e.time * 1000).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }));
+      const platformValues = sorted.map(e => parseFloat(e.platform_weight));
+      const foodValues     = sorted.map(e => parseFloat(e.food_weight));
 
       graphs.style.display = 'grid';
-
       // Destroy existing charts before redrawing
       if (chartPlatformInstance) { chartPlatformInstance.destroy(); chartPlatformInstance = null; }
       if (chartFoodInstance)     { chartFoodInstance.destroy();     chartFoodInstance = null;     }
@@ -1459,7 +1619,7 @@
 
       // ── Raw entries list ──────────────────────────────
       const groups = {};
-      data.forEach(e => {
+      sorted.forEach(e => {
         const d = new Date(e.time * 1000).toISOString().slice(0, 10);
         if (!groups[d]) groups[d] = [];
         groups[d].push(e);

@@ -19,9 +19,11 @@ constexpr int PIN_SCALE_FOOD_SCK = 22;
 constexpr int PIN_SCALE_PLATFORM_DOUT = 19;
 constexpr int PIN_SCALE_PLATFORM_SCK = 18;
 
-constexpr float CALIBRATION_FOOD = -1043.97115385;
-constexpr float CALIBRATION_PLATFORM = -23.9055944056;
+constexpr float CALIBRATION_FOOD = -1043.97115385; // TODO
+constexpr float CALIBRATION_PLATFORM = -23.9055944056; // TODO
 
 // motors
 constexpr int PIN_MOTOR_DIR  = 25;
 constexpr int PIN_MOTOR_STEP = 26;
+
+

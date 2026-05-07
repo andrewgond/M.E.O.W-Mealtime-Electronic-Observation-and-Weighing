@@ -11,15 +11,22 @@
 
 /*
 	website.h — M.E.O.W Web Server
-	Motor logic lives in feeder.h (move_motor, feed_grams, setup_motor).
 
 	Routes:
-		GET  /           → serves index.html from SPIFFS
-		GET  /data       → returns live sensor JSON
-		GET  /feed       → closed-loop dispense (?amount=XX)
-		GET  /moveMotor  → manual motor test rotation
-		GET  /tare       → tares both scales
-		POST /setSchedule → receives schedule JSON from web UI
+		GET  /             → serves index.html from SPIFFS
+		GET  /data         → returns live sensor JSON
+		POST /feed         → closed-loop dispense (?amount=XX)
+		GET  /tare         → tares both scales
+		GET  /getEntries   → DB entries (?start&end&cat)
+		GET  /getCats      → all cat profiles as JSON
+		POST /addCat       → add cat (name, rfid, weight)
+		GET  /removeCat    → remove cat (?id)
+		GET  /getSchedules → all schedules as JSON
+		POST /addSchedule  → add schedule (base_time, grams)
+		GET  /removeSchedule → remove schedule (?id)
+
+	Scheduling is handled entirely by database.h (handle_schedules).
+	Schedules persist across reboots via SQLite.
 */
 
 // ── Server instance ───────────────────────────────────────
@@ -27,44 +34,32 @@ const char* MDNS_NAME = "meow";
 WebServer server(80);
 
 // ── Dispense amount — set by web UI feed button ───────────
-float dispenseAmount = 50.0;  // grams
+float dispenseAmount = 50.0;
 
 // ── Last RFID tag seen — updated by main loop ─────────────
 uint32_t lastRfidTag = 0;
 
-// ── Web schedule struct & storage ────────────────────────
-struct WebSchedule {
-	String   catId;
-	String   type;          // "fixed" or "interval"
-	String   time;          // "HH:MM" for fixed type
-	int      intervalHours; // for interval type
-	int      amount;        // grams
-	uint64_t lastFired;     // unix timestamp of last dispense
-};
-std::vector<WebSchedule> webSchedules;
+// Called from feeder.h during dispensing to keep web server alive
+void website_handle_client() {
+	server.handleClient();
+}
 
 // ═══════════════════════════════════════════════════════
 // ROUTE HANDLERS
 // ═══════════════════════════════════════════════════════
 
-// Serves the dashboard HTML from SPIFFS (data/index.html).
 void handleRoot() {
 	File file = SPIFFS.open("/index.html", "r");
-	if (!file) {
-		server.send(404, "text/plain", "index.html not found — re-upload SPIFFS");
-		return;
-	}
+	if (!file) { server.send(404, "text/plain", "index.html not found"); return; }
 	server.streamFile(file, "text/html");
 	file.close();
 }
 
-// Returns live sensor data as JSON, polled every second by the dashboard.
-// { "catWeight": X.XX, "foodWeight": XXX, "dispenseAmount": XX,
-//   "rfid": XXXXXXXX, "timesynced": true, "currentTime": "HH:MM" }
+// Live sensor JSON — polled every second by dashboard
 void handleData() {
 	float foodWeight     = get_food_weight();
 	float platformWeight = get_platform_weight();
-	float catWeight      = platformWeight / 1000.0;  // g → kg
+	float catWeight      = platformWeight / 1000.0;
 
 	String currentTime = "--:--";
 	struct tm timeinfo;
@@ -75,148 +70,113 @@ void handleData() {
 	}
 
 	String json = "{";
-	json += "\"catWeight\":"      + String(catWeight,      2) + ",";
-	json += "\"foodWeight\":"     + String(foodWeight,     0) + ",";
-	json += "\"dispenseAmount\":" + String(dispenseAmount, 0) + ",";
-	json += "\"rfid\":"           + String(lastRfidTag)        + ",";
-	json += "\"timesynced\":"     + String(is_time_synced() ? "true" : "false") + ",";
-	json += "\"currentTime\":\"" + currentTime + "\"";
+	json += "\"catWeight\":"       + String(catWeight,      2) + ",";
+	json += "\"foodWeight\":"      + String(foodWeight,     0) + ",";
+	json += "\"dispenseAmount\":"  + String(dispenseAmount, 0) + ",";
+	json += "\"rfid\":"            + String(lastRfidTag)        + ",";
+	json += "\"timesynced\":"      + String(is_time_synced()   ? "true" : "false") + ",";
+	json += "\"currentTime\":\""   + currentTime + "\",";
+	json += "\"wifiConnected\":"   + String(is_wifi_connected() ? "true" : "false") + ",";
+	json += "\"dbConnected\":"     + String(is_db_connected()   ? "true" : "false") + ",";
+	json += "\"dbWriteErr\":"      + String(write_err            ? "true" : "false");
 	json += "}";
 	server.send(200, "application/json", json);
 }
 
-// Feed Now button — closed-loop dispense using feed_grams() from feeder.h
+// Feed Now — closed-loop dispense
 void handleFeed() {
 	if (server.hasArg("amount")) {
 		float req = server.arg("amount").toFloat();
 		if (req > 0) dispenseAmount = req;
 	}
-	if (DEBUG_MODE) Serial.printf("[FEED] Manual feed: %.1fg\n", dispenseAmount);
+	if (DEBUG_MODE) Serial.printf("[FEED] Manual: %.1fg\n", dispenseAmount);
 	float actual = feed_grams(dispenseAmount);
 	server.send(200, "text/plain", "Dispensed: " + String(actual, 1) + "g");
 }
 
-// Tare Scales button — zeroes both load cells.
+// Tare both scales
 void handleTare() {
-	if (DEBUG_MODE) Serial.println("[HX711] Taring both scales");
+	if (DEBUG_MODE) Serial.println("[HX711] Taring");
 	tare_scales();
 	server.send(200, "text/plain", "Tared");
 }
 
-// Receives schedule JSON from the web UI and rebuilds webSchedules.
-// Format: { "catId": [ { "type":"fixed","time":"08:00","amount":50 }, ... ], ... }
-void handleSetSchedule() {
-	if (!server.hasArg("plain")) { server.send(400, "text/plain", "No body"); return; }
-	String body = server.arg("plain");
+// ═══════════════════════════════════════════════════════
+// SCHEDULE ENDPOINTS (backed by Craig's database.h)
+// ═══════════════════════════════════════════════════════
 
-	webSchedules.clear();
-
-	int pos = 0;
-	while ((pos = body.indexOf('"', pos)) != -1) {
-		int keyStart = pos + 1;
-		int keyEnd   = body.indexOf('"', keyStart);
-		if (keyEnd == -1) break;
-		String catId = body.substring(keyStart, keyEnd);
-		pos = keyEnd + 1;
-
-		int arrStart = body.indexOf('[', pos);
-		if (arrStart == -1) break;
-		int arrEnd = body.indexOf(']', arrStart);
-		if (arrEnd == -1) break;
-		String arr = body.substring(arrStart, arrEnd + 1);
-		pos = arrEnd + 1;
-
-		int objPos = 0;
-		while ((objPos = arr.indexOf('{', objPos)) != -1) {
-			int objEnd = arr.indexOf('}', objPos);
-			if (objEnd == -1) break;
-			String obj = arr.substring(objPos, objEnd + 1);
-			objPos = objEnd + 1;
-
-			WebSchedule s;
-			s.catId     = catId;
-			s.lastFired = 0;
-
-			int ti = obj.indexOf("\"type\"");
-			if (ti != -1) { int vs = obj.indexOf('"', ti+7)+1; s.type = obj.substring(vs, obj.indexOf('"', vs)); }
-
-			int tmi = obj.indexOf("\"time\"");
-			if (tmi != -1) { int vs = obj.indexOf('"', tmi+7)+1; s.time = obj.substring(vs, obj.indexOf('"', vs)); }
-
-			int ii = obj.indexOf("\"intervalHours\"");
-			if (ii != -1) { s.intervalHours = obj.substring(obj.indexOf(':', ii)+1).toInt(); }
-
-			int ai = obj.indexOf("\"amount\"");
-			if (ai != -1) { s.amount = obj.substring(obj.indexOf(':', ai)+1).toInt(); }
-
-			if (s.amount > 0) webSchedules.push_back(s);
-		}
+// GET /getSchedules
+// Returns all schedules as JSON: [ { "id", "base_time", "grams" }, ... ]
+void handleGetSchedules() {
+	String json = "[";
+	for (int i = 0; i < (int)schedules.size(); i++) {
+		if (i > 0) json += ",";
+		json += "{";
+		json += "\"id\":"        + String(schedules[i].id)        + ",";
+		json += "\"base_time\":" + String((uint32_t)schedules[i].base_time) + ",";
+		json += "\"grams\":"     + String(schedules[i].grams, 1);
+		json += "}";
 	}
-
-	if (DEBUG_MODE) Serial.printf("[SCHED] Loaded %d schedules\n", webSchedules.size());
-	server.send(200, "text/plain", "OK");
+	json += "]";
+	server.send(200, "application/json", json);
 }
 
-// ═══════════════════════════════════════════════════════
-// SCHEDULED FEEDING (web UI schedules)
-// Checks webSchedules and fires any that are due.
-// Call from loop() every iteration.
-// ═══════════════════════════════════════════════════════
-void handle_scheduled_feeding() {
-	if (!is_time_synced() || webSchedules.empty()) return;
+// POST /addSchedule  body: base_time=SECONDS_SINCE_MIDNIGHT&grams=50
+// base_time = seconds since midnight (e.g. 8:00 AM = 28800)
+void handleAddSchedule() {
+	if (!server.hasArg("base_time") || !server.hasArg("grams")) {
+		server.send(400, "text/plain", "Missing base_time or grams");
+		return;
+	}
+	uint64_t base_time = (uint64_t)server.arg("base_time").toInt();
+	float    grams     = server.arg("grams").toFloat();
 
-	struct tm timeinfo;
-	if (!getLocalTime(&timeinfo)) return;
-	uint64_t now = get_time();
-
-	for (auto& s : webSchedules) {
-		if (s.type == "fixed" && s.time.length() == 5) {
-			int schedH = s.time.substring(0, 2).toInt();
-			int schedM = s.time.substring(3, 5).toInt();
-			if (timeinfo.tm_hour == schedH && timeinfo.tm_min == schedM && (now - s.lastFired) > 60) {
-				if (DEBUG_MODE) Serial.printf("[SCHED] Fixed: %s at %s — %dg\n", s.catId.c_str(), s.time.c_str(), s.amount);
-				feed_grams(s.amount);
-				s.lastFired = now;
-			}
-		} else if (s.type == "interval" && s.intervalHours > 0) {
-			uint64_t intervalSec = (uint64_t)s.intervalHours * 3600;
-			if (s.lastFired == 0) {
-				s.lastFired = now;
-			} else if (now - s.lastFired >= intervalSec) {
-				if (DEBUG_MODE) Serial.printf("[SCHED] Interval: %s every %dh — %dg\n", s.catId.c_str(), s.intervalHours, s.amount);
-				feed_grams(s.amount);
-				s.lastFired = now;
-			}
-		}
+	int new_id = add_schedule(base_time, grams);
+	if (new_id > 0) {
+		if (DEBUG_MODE) Serial.printf("[SCHED] Added id=%d base=%llu grams=%.1f\n", new_id, base_time, grams);
+		server.send(200, "application/json",
+			"{\"id\":" + String(new_id) + ",\"base_time\":" + String((uint32_t)base_time) + ",\"grams\":" + String(grams,1) + "}");
+	} else {
+		server.send(500, "text/plain", "Failed — check SD card");
 	}
 }
 
-// Returns database entries as JSON array for the History page.
+// GET /removeSchedule?id=1
+void handleRemoveSchedule() {
+	if (!server.hasArg("id")) { server.send(400, "text/plain", "Missing id"); return; }
+	uint32_t id = (uint32_t)server.arg("id").toInt();
+	if (remove_schedule(id)) {
+		if (DEBUG_MODE) Serial.printf("[SCHED] Removed id=%u\n", id);
+		server.send(200, "text/plain", "Removed");
+	} else {
+		server.send(500, "text/plain", "Failed to remove schedule");
+	}
+}
+
+// ═══════════════════════════════════════════════════════
+// DB ENTRY ENDPOINTS
+// ═══════════════════════════════════════════════════════
+
 // GET /getEntries?start=0&end=9999999999&cat=0
-// cat=0 means all cats
+// Returns most recent 200 entries (ordered by DB)
 void handleGetEntries() {
 	uint64_t start  = server.hasArg("start") ? (uint64_t)server.arg("start").toInt() : 0;
 	uint64_t end    = server.hasArg("end")   ? (uint64_t)server.arg("end").toInt()   : get_time();
 	uint32_t cat_id = server.hasArg("cat")   ? (uint32_t)server.arg("cat").toInt()   : 0;
 
-	// Collect entries into a vector first (query_entry_range needs plain fn pointer, no lambdas)
 	static std::vector<Entry> results;
 	results.clear();
+	query_entry_range(start, end, cat_id, [](Entry e) { results.push_back(e); });
 
-	query_entry_range(start, end, cat_id, [](Entry e) {
-		results.push_back(e);
-	});
-
-	// Build JSON from collected results
 	String json = "[";
 	for (int i = 0; i < (int)results.size(); i++) {
 		if (i > 0) json += ",";
 		const Entry& e = results[i];
 		json += "{";
-		json += "\"time\":"            + String((uint32_t)e.time)        + ",";
-		json += "\"assumed_cat_id\":"  + String(e.assumed_cat_id)        + ",";
-		json += "\"rfid\":"            + String(e.rfid)                  + ",";
-		json += "\"food_weight\":"     + String(e.food_weight,    2)     + ",";
+		json += "\"time\":"            + String((uint32_t)e.time)      + ",";
+		json += "\"assumed_cat_id\":"  + String(e.assumed_cat_id)      + ",";
+		json += "\"rfid\":"            + String(e.rfid)                + ",";
+		json += "\"food_weight\":"     + String(e.food_weight,    2)   + ",";
 		json += "\"platform_weight\":" + String(e.platform_weight, 2);
 		json += "}";
 	}
@@ -228,75 +188,67 @@ void handleGetEntries() {
 // CAT PROFILE ENDPOINTS
 // ═══════════════════════════════════════════════════════
 
-// Returns all cat profiles as JSON array.
 // GET /getCats
-// [ { "id": 1, "rfid": 12345, "weight": 4.5, "name": "Luna" }, ... ]
 void handleGetCats() {
 	String json = "[";
 	for (int i = 0; i < (int)cat_profiles.size(); i++) {
 		if (i > 0) json += ",";
 		json += "{";
-		json += "\"id\":"     + String(cat_profiles[i].id)     + ",";
-		json += "\"rfid\":"   + String(cat_profiles[i].rfid)   + ",";
+		json += "\"id\":"     + String(cat_profiles[i].id)        + ",";
+		json += "\"rfid\":"   + String(cat_profiles[i].rfid)      + ",";
 		json += "\"weight\":" + String(cat_profiles[i].weight, 2) + ",";
-		json += "\"name\":\"" + String(cat_profiles[i].name)   + "\"";
+		json += "\"name\":\"" + String(cat_profiles[i].name)      + "\"";
 		json += "}";
 	}
 	json += "]";
 	server.send(200, "application/json", json);
 }
 
-// Adds a new cat profile to the database.
 // POST /addCat  body: name=Luna&rfid=12345&weight=4.5
 void handleAddCat() {
 	if (!server.hasArg("name")) { server.send(400, "text/plain", "Missing name"); return; }
-
-	const char* name  = server.arg("name").c_str();
-	uint32_t    rfid  = server.hasArg("rfid")   ? (uint32_t)server.arg("rfid").toInt()     : 0;
-	float       weight = server.hasArg("weight") ? server.arg("weight").toFloat()           : 0.0f;
+	const char* name   = server.arg("name").c_str();
+	uint32_t    rfid   = server.hasArg("rfid")   ? (uint32_t)server.arg("rfid").toInt() : 0;
+	float       weight = server.hasArg("weight") ? server.arg("weight").toFloat()        : 0.0f;
 
 	int new_id = add_cat(rfid, weight, name);
 	if (new_id > 0) {
-		if (DEBUG_MODE) Serial.printf("[CAT] Added: %s (id=%d rfid=%u weight=%.2f)\n", name, new_id, rfid, weight);
 		server.send(200, "application/json",
 			"{\"id\":" + String(new_id) + ",\"name\":\"" + String(name) + "\"}");
 	} else {
-		server.send(500, "text/plain", "Failed to add cat — check SD card connection");
+		server.send(500, "text/plain", "Failed — check SD card");
 	}
 }
 
-// Removes a cat profile by ID.
 // GET /removeCat?id=1
 void handleRemoveCat() {
 	if (!server.hasArg("id")) { server.send(400, "text/plain", "Missing id"); return; }
 	uint32_t id = (uint32_t)server.arg("id").toInt();
-	if (remove_cat(id)) {
-		if (DEBUG_MODE) Serial.printf("[CAT] Removed id=%u\n", id);
-		server.send(200, "text/plain", "Removed");
-	} else {
-		server.send(500, "text/plain", "Failed to remove cat");
-	}
+	bool ok = remove_cat(id);
+	server.send(ok ? 200 : 500, "text/plain", ok ? "Removed" : "Failed");
 }
 
 // ═══════════════════════════════════════════════════════
-// SERVER SETUP — call from main setup() after WiFi connects
+// SERVER SETUP
 // ═══════════════════════════════════════════════════════
 void setup_website() {
 	if (!SPIFFS.begin(true)) {
-		if (DEBUG_MODE) Serial.println("[SPIFFS] Failed — dashboard won't load");
+		if (DEBUG_MODE) Serial.println("[SPIFFS] Failed");
 	} else {
 		if (DEBUG_MODE) Serial.println("[SPIFFS] Ready");
 	}
 
-	server.on("/",            handleRoot);
-	server.on("/data",        handleData);
-	server.on("/feed",        handleFeed);
-	server.on("/tare",        handleTare);
-	server.on("/setSchedule", HTTP_POST, handleSetSchedule);
-	server.on("/getCats",     handleGetCats);
-	server.on("/addCat",      HTTP_POST, handleAddCat);
-	server.on("/removeCat",   handleRemoveCat);
-	server.on("/getEntries",  handleGetEntries);
+	server.on("/",               handleRoot);
+	server.on("/data",           handleData);
+	server.on("/feed",           handleFeed);
+	server.on("/tare",           handleTare);
+	server.on("/getEntries",     handleGetEntries);
+	server.on("/getCats",        handleGetCats);
+	server.on("/addCat",         HTTP_POST, handleAddCat);
+	server.on("/removeCat",      handleRemoveCat);
+	server.on("/getSchedules",   handleGetSchedules);
+	server.on("/addSchedule",    HTTP_POST, handleAddSchedule);
+	server.on("/removeSchedule", handleRemoveSchedule);
 
 	server.begin();
 	if (DEBUG_MODE) Serial.println("[SERVER] Ready — http://meow.local");

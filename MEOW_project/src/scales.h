@@ -4,10 +4,10 @@
 HX711 scale_food;
 HX711 scale_platform;
 
-constexpr float ZERO_THRESHOLD_FOOD = 1.0; // 1g or under is zero
-constexpr float ZERO_THRESHOLD_PLATFORM = 25.0; // 25g or under is zero
+constexpr float ZERO_THRESHOLD_FOOD = 1.0; // TODO
+constexpr float ZERO_THRESHOLD_PLATFORM = 1.0; // TODO
 
-constexpr int SCALE_BUFFER_SIZE = 5; // must be greater than 0
+constexpr int SCALE_BUFFER_SIZE = 10; // must be greater than 0
 
 std::array<float, SCALE_BUFFER_SIZE> food_buf = {0};
 int food_idx = 0;
