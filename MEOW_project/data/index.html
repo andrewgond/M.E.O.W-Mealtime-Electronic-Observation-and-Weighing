@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>M.E.O.W Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e100f;
+      --surface: #161918;
+      --surface2: #1e2220;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.12);
+      --text: #e8ebe9;
+      --muted: #7a8a7e;
+      --accent: #f4a261;
+      --accent-dim: rgba(244,162,97,0.12);
+      --accent-dim2: rgba(244,162,97,0.06);
+      --warn: #f4a261;
+      --warn-dim: rgba(244,162,97,0.12);
+      --danger: #e76f51;
+      --blue: #74b3f0;
+      --blue-dim: rgba(116,179,240,0.12);
+      --r: 14px;
+      --r-sm: 8px;
+    }
+
+    html { font-size: 16px; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px;
+      height: 64px;
+      background: rgba(14,16,15,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+    }
+    .nav-logo span { color: var(--muted); font-style: italic; font-size: 13px; margin-left: 8px; }
+    .nav-tabs { display: flex; gap: 4px; }
+    .nav-tab {
+      padding: 8px 18px;
+      border-radius: 999px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-tab:hover { color: var(--text); background: var(--surface2); }
+    .nav-tab.active { background: var(--accent-dim); color: var(--accent); font-weight: 500; }
+
+    /* ─── PAGES ─── */
+    .page { display: none; padding: 96px 32px 60px; max-width: 960px; margin: 0 auto; }
+    .page.active { display: block; }
+
+    /* ─── PAGE HEADER ─── */
+    .page-header { margin-bottom: 36px; }
+    .page-header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 36px;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1.1;
+    }
+    .page-header p { color: var(--muted); font-size: 15px; margin-top: 6px; }
+
+    /* ─── CARDS GRID ─── */
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 16px; margin-bottom: 24px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 28px 24px;
+    }
+    .card-label { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+    .card-value { font-family: 'DM Serif Display', serif; font-size: 48px; line-height: 1; color: var(--text); }
+    .card-unit { font-family: 'DM Sans', sans-serif; font-size: 16px; color: var(--muted); margin-left: 4px; }
+    .card-sub { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+    /* active cat indicator */
+    .card.cat-active { border-color: rgba(244,162,97,0.25); background: linear-gradient(135deg, var(--surface), var(--accent-dim2)); }
+    .cat-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--accent-dim); color: var(--accent); font-size: 12px; font-weight: 500; margin-bottom: 10px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+
+    /* ─── CONTROL CARD ─── */
+    .control-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 28px 24px;
+      margin-bottom: 16px;
+    }
+    .control-card h2 { font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+    .control-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+    label { font-size: 14px; color: var(--muted); font-weight: 400; }
+
+    input[type="number"], input[type="text"], input[type="date"], select {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-sm);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="number"]:focus, input[type="text"]:focus, input[type="date"]:focus, select:focus {
+      border-color: rgba(244,162,97,0.4);
+    }
+    input[type="number"] { width: 100px; }
+    select { min-width: 160px; }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      padding: 10px 22px;
+      border-radius: var(--r-sm);
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--accent); color: #0e100f; }
+    .btn-primary:hover { background: #f7b97a; }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border2); }
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.2); }
+    .btn-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(116,179,240,0.2); }
+    .btn-blue:hover { background: rgba(116,179,240,0.2); }
+    .btn-danger { background: rgba(231,111,81,0.12); color: var(--danger); border: 1px solid rgba(231,111,81,0.2); }
+    .btn-danger:hover { background: rgba(231,111,81,0.2); }
+    .btn-sm { padding: 6px 14px; font-size: 13px; }
+
+    /* ─── STATUS ─── */
+    .status-bar { font-size: 13px; color: var(--muted); padding: 12px 0 0; min-height: 36px; display: flex; align-items: center; gap: 8px; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+    .status-dot.warn { background: #e9c46a; }
+    .status-dot.err { background: var(--danger); }
+
+    /* ─── DIVIDER ─── */
+    .divider { height: 1px; background: var(--border); margin: 28px 0; }
+
+    /* ═══════════════════════════════════
+       CATS PAGE
+    ═══════════════════════════════════ */
+    .cats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 16px; margin-bottom: 24px; }
+
+    .cat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .cat-card:hover { border-color: var(--border2); }
+
+    .cat-photo {
+      width: 100%; height: 160px; object-fit: cover;
+      background: var(--surface2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 56px;
+    }
+    .cat-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .cat-photo-placeholder { width: 100%; height: 160px; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 52px; }
+
+    .cat-info { padding: 20px; }
+    .cat-name { font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 4px; }
+    .cat-meta { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+    .cat-goal-bar { height: 4px; background: var(--surface2); border-radius: 2px; margin: 8px 0 4px; overflow: hidden; }
+    .cat-goal-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s; }
+    .cat-goal-text { font-size: 12px; color: var(--muted); }
+    .cat-actions { display: flex; gap: 8px; margin-top: 14px; }
+
+    /* add cat form */
+    .add-cat-card {
+      background: var(--surface);
+      border: 1px dashed var(--border2);
+      border-radius: var(--r);
+      padding: 28px 24px;
+      margin-bottom: 24px;
+    }
+    .add-cat-card h2 { font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-field { display: flex; flex-direction: column; gap: 6px; }
+    .form-field label { font-size: 13px; color: var(--muted); }
+    .form-field input, .form-field select { width: 100%; }
+    .form-field.full { grid-column: 1 / -1; }
+
+    .photo-upload {
+      border: 1px dashed var(--border2);
+      border-radius: var(--r-sm);
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--surface2);
+    }
+    .photo-upload:hover { border-color: rgba(244,162,97,0.3); background: var(--accent-dim2); }
+    .photo-upload-icon { font-size: 28px; margin-bottom: 8px; }
+    .photo-upload p { font-size: 13px; color: var(--muted); }
+    .photo-upload input[type="file"] { display: none; }
+    .photo-preview { width: 100%; height: 120px; object-fit: cover; border-radius: var(--r-sm); display: block; }
+
+    /* ═══════════════════════════════════
+       HISTORY PAGE
+    ═══════════════════════════════════ */
+    .history-filters {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    }
+    .filter-label { font-size: 13px; color: var(--muted); font-weight: 500; }
+
+    .history-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 20px; }
+    .stat-pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 18px 20px;
+      text-align: center;
+    }
+    .stat-pill .val { font-family: 'DM Serif Display', serif; font-size: 30px; color: var(--text); }
+    .stat-pill .lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .history-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .history-entry {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 16px 20px;
+      display: flex; align-items: center; gap: 16px;
+      transition: border-color 0.15s;
+    }
+    .history-entry:hover { border-color: var(--border2); }
+    .entry-icon { width: 36px; height: 36px; border-radius: 50%; background: var(--accent-dim); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .entry-info { flex: 1; }
+    .entry-cat { font-size: 14px; font-weight: 500; color: var(--text); }
+    .entry-time { font-size: 12px; color: var(--muted); margin-top: 1px; }
+    .entry-amount { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--accent); }
+    .entry-unit { font-size: 12px; color: var(--muted); margin-left: 2px; }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state p { font-size: 15px; }
+
+    /* ─── SETTINGS PANEL ─── */
+    .settings-btn {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--border2);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .settings-btn:hover { background: var(--surface2); color: var(--text); }
+
+    .settings-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 200;
+    }
+    .settings-overlay.open { display: block; }
+    .settings-backdrop {
+      position: absolute; inset: 0;
+    }
+    .settings-panel {
+      position: absolute; top: 72px; right: 32px;
+      width: 280px;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: var(--r);
+      padding: 20px 24px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+    }
+    .settings-panel h3 {
+      font-size: 11px; font-weight: 500; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .settings-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .settings-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .settings-row-label { font-size: 14px; color: var(--text); }
+    .settings-row-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+    .unit-toggle {
+      display: flex;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 999px;
+      padding: 3px;
+      gap: 2px;
+    }
+    .unit-opt {
+      padding: 5px 14px;
+      border-radius: 999px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .unit-opt.active { background: var(--accent); color: #0e100f; }
+
+    /* ─── RFID INDICATOR ─── */
+    .rfid-card { position: relative; overflow: hidden; }
+    .rfid-active { border-color: rgba(116,179,240,0.35) !important; background: linear-gradient(135deg, var(--surface), rgba(116,179,240,0.06)) !important; }
+    .rfid-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--blue-dim); color: var(--blue); font-size: 12px; font-weight: 500; margin-bottom: 10px; }
+    .rfid-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+    .rfid-dot.active { background: var(--blue); animation: pulse 1.5s infinite; }
+    .rfid-tag { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--text); letter-spacing: 0.02em; word-break: break-all; }
+    .rfid-tag.none { font-family: 'DM Sans', sans-serif; font-size: 16px; color: var(--muted); font-style: italic; }
+    .rfid-time { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+    /* ─── SCHEDULE PAGE ─── */
+    .schedule-cat-section { margin-bottom: 28px; }
+    .schedule-cat-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r) var(--r) 0 0;
+      cursor: pointer;
+    }
+    .schedule-cat-header.collapsed { border-radius: var(--r); }
+    .schedule-cat-title { display: flex; align-items: center; gap: 12px; }
+    .schedule-cat-title .cat-name { font-family: 'DM Serif Display', serif; font-size: 20px; }
+    .schedule-cat-title .cat-count { font-size: 12px; color: var(--muted); background: var(--surface2); padding: 3px 10px; border-radius: 999px; }
+    .schedule-chevron { color: var(--muted); font-size: 12px; transition: transform 0.2s; }
+    .schedule-chevron.open { transform: rotate(180deg); }
+    .schedule-body {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 var(--r) var(--r);
+      padding: 20px;
+    }
+    .schedule-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    .schedule-item {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 12px 16px;
+    }
+    .schedule-item-icon { font-size: 18px; flex-shrink: 0; }
+    .schedule-item-info { flex: 1; }
+    .schedule-item-title { font-size: 14px; font-weight: 500; color: var(--text); }
+    .schedule-item-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .schedule-item-amount { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--accent); flex-shrink: 0; }
+    .schedule-item-unit { font-size: 12px; color: var(--muted); }
+    .schedule-add-form {
+      background: var(--surface2);
+      border: 1px dashed var(--border2);
+      border-radius: var(--r-sm);
+      padding: 16px;
+      margin-top: 12px;
+    }
+    .schedule-add-form h4 { font-size: 12px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+    .schedule-type-toggle { display: flex; gap: 8px; margin-bottom: 14px; }
+    .type-btn {
+      padding: 7px 16px; border-radius: var(--r-sm); border: 1px solid var(--border2);
+      background: transparent; color: var(--muted);
+      font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.15s;
+    }
+    .type-btn.active { background: var(--accent-dim); color: var(--accent); border-color: rgba(244,162,97,0.3); }
+    .schedule-fields { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+    .schedule-fields .form-field { flex: 1; min-width: 120px; }
+    .schedule-fields .form-field label { font-size: 12px; color: var(--muted); margin-bottom: 4px; display: block; }
+    .schedule-fields input, .schedule-fields select { width: 100%; }
+    .schedule-empty { font-size: 13px; color: var(--muted); font-style: italic; padding: 8px 0; }
+    .schedule-status {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--r-sm); padding: 10px 14px;
+      font-size: 13px; color: var(--muted); margin-bottom: 20px;
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 600px) {
+      nav { padding: 0 16px; }
+      .page { padding: 88px 16px 60px; }
+      .nav-logo span { display: none; }
+      .form-grid { grid-template-columns: 1fr; }
+      .history-stats { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">M.E.O.W <span>Mealtime Electronic Observation & Weighing</span></div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="goTo('dashboard')">Dashboard</button>
+      <button class="nav-tab" onclick="goTo('cats')">Cats</button>
+      <button class="nav-tab" onclick="goTo('history')">History</button>
+      <button class="nav-tab" onclick="goTo('schedule')">Schedule</button>
+    </div>
+    <button class="settings-btn" onclick="toggleSettings()" title="Settings">⚙️</button>
+  </div>
+</nav>
+
+<!-- Settings Panel -->
+<div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-backdrop" onclick="closeSettings()"></div>
+  <div class="settings-panel">
+    <h3>Settings</h3>
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Cat weight unit</div>
+        <div class="settings-row-sub">Shown on dashboard</div>
+      </div>
+      <div class="unit-toggle">
+        <button class="unit-opt active" id="unit-kg" onclick="setUnit('kg')">kg</button>
+        <button class="unit-opt" id="unit-lbs" onclick="setUnit('lbs')">lbs</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     DASHBOARD PAGE
+═══════════════════════════════════════ -->
+<div class="page active" id="page-dashboard">
+  <div class="page-header">
+    <h1>Dashboard</h1>
+    <p>Live sensor readings and feeding controls.</p>
+  </div>
+
+  <div class="cards">
+    <div class="card cat-active" id="active-cat-card">
+      <div class="cat-badge"><span class="dot"></span> <span id="active-cat-name">No cat detected</span></div>
+      <div class="card-label">Cat on Platform</div>
+      <div class="card-value"><span id="catWeight">--</span><span class="card-unit" id="catWeightUnit">kg</span></div>
+      <div class="card-sub" id="cat-goal-text">—</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Food in Hopper</div>
+      <div class="card-value"><span id="foodWeight">--</span><span class="card-unit">g</span></div>
+      <div class="card-sub" id="food-level-text">—</div>
+    </div>
+
+    <div class="card rfid-card" id="rfid-card">
+      <div class="rfid-badge"><span class="rfid-dot" id="rfidDot"></span> RFID Reader</div>
+      <div class="card-label">Last Scanned Tag</div>
+      <div class="rfid-tag none" id="rfidTag">No tag detected</div>
+      <div class="rfid-time" id="rfidTime">—</div>
+    </div>
+  </div>
+
+  <div class="control-card">
+    <h2>Feeding Control</h2>
+    <div class="control-row">
+      <label for="catSelect">Cat</label>
+      <select id="catSelect" onchange="onCatSelectChange()"></select>
+      <label for="amountInput">Amount</label>
+      <input id="amountInput" type="number" min="1" max="500" value="50">
+      <span style="color:var(--muted);font-size:14px;">g</span>
+      <button class="btn btn-primary" onclick="feedNow()">Feed Now</button>
+      <button class="btn btn-secondary" onclick="moveMotor()">Test Motor</button>
+    </div>
+    <div class="status-bar">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Connecting to ESP32…</span>
+    </div>
+  </div>
+
+  <div class="control-card">
+    <h2>Sensor Controls</h2>
+    <div class="control-row">
+      <button class="btn btn-secondary" onclick="tare()">Tare Scales</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     CATS PAGE
+═══════════════════════════════════════ -->
+<div class="page" id="page-cats">
+  <div class="page-header">
+    <h1>Cat Profiles</h1>
+    <p>Manage your cats and their daily food goals.</p>
+  </div>
+
+  <!-- Add Cat Form -->
+  <div class="add-cat-card">
+    <h2 id="form-title">Add a Cat</h2>
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Name</label>
+        <input type="text" id="catName" placeholder="e.g. Luna">
+      </div>
+      <div class="form-field">
+        <label>Daily food goal (g)</label>
+        <input type="number" id="catGoal" placeholder="e.g. 200" min="1" max="2000">
+      </div>
+      <div class="form-field full">
+        <label>RFID Tag</label>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <input type="text" id="catRfid" placeholder="Scan tag or enter manually" style="flex:1;font-family:monospace;" readonly>
+          <button class="btn btn-blue btn-sm" onclick="scanRfidForCat()">📡 Scan Now</button>
+          <button class="btn btn-secondary btn-sm" onclick="clearRfid()">Clear</button>
+        </div>
+        <div id="rfidScanMsg" style="font-size:12px;color:var(--muted);margin-top:6px;">Hold the RFID tag near the reader, then click Scan Now.</div>
+      </div>
+      <div class="form-field full">
+        <label>Photo</label>
+        <div class="photo-upload" onclick="document.getElementById('photoInput').click()">
+          <div id="photoPreviewWrap">
+            <div class="photo-upload-icon">🐱</div>
+            <p>Click to upload a photo</p>
+          </div>
+          <input type="file" id="photoInput" accept="image/*" onchange="previewPhoto(event)">
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <button class="btn btn-primary" onclick="saveCat()">Save Cat</button>
+      <button class="btn btn-secondary" id="cancelEditBtn" style="display:none;" onclick="cancelEdit()">Cancel</button>
+    </div>
+    <div id="catFormMsg" style="margin-top:12px;font-size:13px;color:var(--muted);"></div>
+  </div>
+
+  <!-- Cat Cards -->
+  <div class="cats-grid" id="catsGrid"></div>
+  <div class="empty-state" id="catsEmpty" style="display:none;">
+    <div class="empty-icon">🐾</div>
+    <p>No cats added yet. Add your first cat above!</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     HISTORY PAGE
+═══════════════════════════════════════ -->
+<div class="page" id="page-history">
+  <div class="page-header">
+    <h1>Feeding History</h1>
+    <p>Filter by date or cat to review past feedings.</p>
+  </div>
+
+  <div class="history-filters">
+    <span class="filter-label">Filter</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <label style="font-size:13px;">Date</label>
+      <input type="date" id="filterDate" onchange="renderHistory()">
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <label style="font-size:13px;">Cat</label>
+      <select id="filterCat" onchange="renderHistory()">
+        <option value="">All cats</option>
+      </select>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Clear</button>
+    <div style="flex:1"></div>
+    <button class="btn btn-danger btn-sm" onclick="clearAllHistory()">Clear History</button>
+  </div>
+
+  <div class="history-stats" id="historyStats"></div>
+  <div class="history-list" id="historyList"></div>
+  <div class="empty-state" id="historyEmpty" style="display:none;">
+    <div class="empty-icon">📋</div>
+    <p>No feedings found for the selected filters.</p>
+  </div>
+
+  <!-- SD Card Logs -->
+  <div style="margin-top:32px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div>
+        <div style="font-family:'DM Serif Display',serif;font-size:24px;">SD Card Logs</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px;">Sensor data from the ESP32 database</div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="loadSdLogs()">↻ Refresh</button>
+    </div>
+    <div id="sdLogsStatus" style="font-size:13px;color:var(--muted);margin-bottom:16px;">Select a date filter above and click Refresh.</div>
+
+    <!-- Graphs -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;" id="sdGraphs" style="display:none;">
+      <div class="card">
+        <div class="card-label">Cat Weight Over Time</div>
+        <canvas id="chartPlatform" height="180"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-label">Food in Hopper Over Time</div>
+        <canvas id="chartFood" height="180"></canvas>
+      </div>
+    </div>
+
+    <!-- Raw entries table -->
+    <div id="sdLogsList"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCHEDULE PAGE
+═══════════════════════════════════════ -->
+<div class="page" id="page-schedule">
+  <div class="page-header">
+    <h1>Feeding Schedule</h1>
+    <p>Set fixed times or intervals for each cat. The ESP32 will dispense automatically.</p>
+  </div>
+
+  <div class="schedule-status">
+    <span class="status-dot" id="scheduleStatusDot"></span>
+    <span id="scheduleStatusText">Checking ESP32 clock…</span>
+  </div>
+
+  <div id="scheduleCatList">
+    <div class="empty-state">
+      <div class="empty-icon">🐾</div>
+      <p>Add cats in the Cats page first, then set their schedules here.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ══════════════════════════════════════
+     STATE
+  ══════════════════════════════════════ */
+  let cats = JSON.parse(localStorage.getItem('meow_cats') || '[]');
+  let history = JSON.parse(localStorage.getItem('meow_history') || '[]');
+  let schedules = JSON.parse(localStorage.getItem('meow_schedules') || '{}'); // { catId: [schedule,...] }
+  let editingCatId = null;
+  let pendingPhotoData = null;
+  let weightUnit = localStorage.getItem('meow_unit') || 'kg';
+
+  /* ══════════════════════════════════════
+     SETTINGS
+  ══════════════════════════════════════ */
+  function toggleSettings() {
+    document.getElementById('settingsOverlay').classList.toggle('open');
+  }
+  function closeSettings() {
+    document.getElementById('settingsOverlay').classList.remove('open');
+  }
+  function setUnit(unit) {
+    weightUnit = unit;
+    localStorage.setItem('meow_unit', unit);
+    document.getElementById('unit-kg').classList.toggle('active', unit === 'kg');
+    document.getElementById('unit-lbs').classList.toggle('active', unit === 'lbs');
+    document.getElementById('catWeightUnit').textContent = unit;
+  }
+  function convertWeight(kg) {
+    return weightUnit === 'lbs' ? (kg * 2.20462).toFixed(2) : kg.toFixed(2);
+  }
+
+  /* ══════════════════════════════════════
+     NAVIGATION
+  ══════════════════════════════════════ */
+  function goTo(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    document.querySelectorAll('.nav-tab').forEach(t => {
+      if (t.getAttribute('onclick').includes("'" + page + "'"))
+        t.classList.add('active');
+    });
+    if (page === 'history')  renderHistory();
+    if (page === 'cats')     renderCats();
+    if (page === 'schedule') renderSchedule();
+    if (page === 'dashboard') populateCatSelect();
+  }
+
+  /* ══════════════════════════════════════
+     STORAGE
+  ══════════════════════════════════════ */
+  function saveCats() { localStorage.setItem('meow_cats', JSON.stringify(cats)); }
+  function saveHistory() { localStorage.setItem('meow_history', JSON.stringify(history)); }
+  function saveSchedules() { localStorage.setItem('meow_schedules', JSON.stringify(schedules)); }
+
+  function logFeeding(catId, amount) {
+    const cat = cats.find(c => c.id === catId);
+    history.unshift({
+      id: Date.now(),
+      catId: catId,
+      catName: cat ? cat.name : 'Unknown',
+      amount: Number(amount),
+      ts: new Date().toISOString()
+    });
+    saveHistory();
+  }
+
+  /* ══════════════════════════════════════
+     DASHBOARD
+  ══════════════════════════════════════ */
+  function populateCatSelect() {
+    const sel = document.getElementById('catSelect');
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">— Select cat —</option>';
+    cats.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.name;
+      sel.appendChild(opt);
+    });
+    if (prev) sel.value = prev;
+  }
+
+  function onCatSelectChange() {
+    const catId = document.getElementById('catSelect').value;
+    const cat = cats.find(c => c.id === catId);
+    if (cat) {
+      document.getElementById('amountInput').value = Math.round(cat.dailyGoal / 3);
+    }
+  }
+
+  function setStatus(msg, type) {
+    document.getElementById('statusText').textContent = msg;
+    const dot = document.getElementById('statusDot');
+    dot.className = 'status-dot' + (type === 'warn' ? ' warn' : type === 'err' ? ' err' : '');
+  }
+
+  async function loadData() {
+    try {
+      const response = await fetch('/data');
+      const data = await response.json();
+      document.getElementById('catWeight').textContent = convertWeight(Number(data.catWeight));
+      document.getElementById('catWeightUnit').textContent = weightUnit;
+      document.getElementById('foodWeight').textContent = Number(data.foodWeight).toFixed(0);
+
+      // Food level
+      const fw = Number(data.foodWeight);
+      let levelText = fw > 600 ? 'Plenty of food' : fw > 300 ? 'Getting low' : fw > 50 ? 'Refill soon' : 'Almost empty!';
+      document.getElementById('food-level-text').textContent = levelText;
+
+      // Cat goal
+      const catId = document.getElementById('catSelect').value;
+      const cat = cats.find(c => c.id === catId);
+      if (cat) {
+        const todayFed = getTodayFed(catId);
+        const pct = Math.min(100, Math.round(todayFed / cat.dailyGoal * 100));
+        document.getElementById('cat-goal-text').textContent =
+          `${todayFed}g of ${cat.dailyGoal}g daily goal (${pct}%)`;
+        document.getElementById('active-cat-name').textContent = cat.name;
+      } else {
+        document.getElementById('cat-goal-text').textContent = '—';
+        document.getElementById('active-cat-name').textContent = 'No cat selected';
+      }
+
+      if (data.dispenseAmount !== undefined && document.activeElement !== document.getElementById('amountInput')) {
+        document.getElementById('amountInput').value = Number(data.dispenseAmount).toFixed(0);
+      }
+
+      // RFID — included in /data response
+      updateRfidDisplay(data.rfid || 0);
+
+      setStatus('Live data connected.', '');
+    } catch {
+      setStatus('Waiting for ESP32 data…', 'warn');
+    }
+  }
+
+  // Tracks the last seen RFID tag and when it was scanned
+  let lastRfidTag = 0;
+  let lastRfidTime = null;
+
+  function updateRfidDisplay(tagId) {
+    const tagEl  = document.getElementById('rfidTag');
+    const dotEl  = document.getElementById('rfidDot');
+    const timeEl = document.getElementById('rfidTime');
+    const card   = document.getElementById('rfid-card');
+
+    if (tagId && tagId !== 0) {
+      if (tagId !== lastRfidTag) {
+        lastRfidTag  = tagId;
+        lastRfidTime = new Date();
+      }
+      const hex = '0x' + tagId.toString(16).toUpperCase().padStart(8, '0');
+      tagEl.textContent = hex;
+      tagEl.className   = 'rfid-tag';
+      dotEl.className   = 'rfid-dot active';
+      card.classList.add('rfid-active');
+
+      // Auto-match to a cat profile by RFID tag
+      const matched = cats.find(c => c.rfid === hex);
+      if (matched) {
+        timeEl.textContent = `✓ ${matched.name} · ${lastRfidTime.toLocaleTimeString()}`;
+        // Auto-select this cat in the dashboard dropdown
+        const sel = document.getElementById('catSelect');
+        if (sel && sel.value !== matched.id) sel.value = matched.id;
+        document.getElementById('active-cat-name').textContent = matched.name;
+      } else {
+        timeEl.textContent = 'Scanned at ' + lastRfidTime.toLocaleTimeString() + ' · No cat assigned';
+      }
+    } else {
+      tagEl.className = 'rfid-tag none';
+      dotEl.className = 'rfid-dot';
+      card.classList.remove('rfid-active');
+      if (lastRfidTag && lastRfidTime) {
+        const hex = '0x' + lastRfidTag.toString(16).toUpperCase().padStart(8, '0');
+        tagEl.textContent  = 'Last: ' + hex;
+        timeEl.textContent = 'Last seen at ' + lastRfidTime.toLocaleTimeString();
+      } else {
+        tagEl.textContent  = 'No tag detected';
+        timeEl.textContent = '—';
+      }
+    }
+  }
+
+  function getTodayFed(catId) {
+    const today = new Date().toISOString().slice(0,10);
+    return history
+      .filter(e => e.catId === catId && e.ts.slice(0,10) === today)
+      .reduce((s, e) => s + e.amount, 0);
+  }
+
+  async function feedNow() {
+    const amount = document.getElementById('amountInput').value;
+    const catId = document.getElementById('catSelect').value;
+    if (!amount || Number(amount) <= 0) { setStatus('Enter a valid amount.', 'warn'); return; }
+
+    setStatus('Dispensing ' + amount + 'g…', '');
+    await fetch('/feed?amount=' + encodeURIComponent(amount));
+    logFeeding(catId || null, amount);
+    await loadData();
+    setStatus('Dispensed ' + amount + 'g.', '');
+  }
+
+  async function moveMotor() {
+    setStatus('Testing motor…', '');
+    await fetch('/moveMotor');
+    setStatus('Motor test done.', '');
+  }
+
+  async function tare() {
+    setStatus('Taring scales…', '');
+    await fetch('/tare');
+    setStatus('Scales tared.', '');
+  }
+
+  /* ══════════════════════════════════════
+     CATS PAGE
+  ══════════════════════════════════════ */
+  function renderCats() {
+    populateCatSelect();
+    const grid = document.getElementById('catsGrid');
+    const empty = document.getElementById('catsEmpty');
+    grid.innerHTML = '';
+
+    if (cats.length === 0) { empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+
+    cats.forEach(cat => {
+      const todayFed = getTodayFed(cat.id);
+      const pct = Math.min(100, Math.round(todayFed / cat.dailyGoal * 100));
+      const card = document.createElement('div');
+      card.className = 'cat-card';
+      const rfidLabel = cat.rfid
+        ? `<div class="cat-meta" style="font-family:monospace;color:var(--blue);">📡 ${cat.rfid}</div>`
+        : `<div class="cat-meta" style="color:var(--muted);font-style:italic;">No RFID tag assigned</div>`;
+
+      card.innerHTML = `
+        ${cat.photo
+          ? `<div class="cat-photo"><img src="${cat.photo}" alt="${cat.name}"></div>`
+          : `<div class="cat-photo-placeholder">🐱</div>`}
+        <div class="cat-info">
+          <div class="cat-name">${escHtml(cat.name)}</div>
+          <div class="cat-meta">Daily goal: ${cat.dailyGoal}g</div>
+          ${rfidLabel}
+          <div class="cat-goal-bar"><div class="cat-goal-fill" style="width:${pct}%"></div></div>
+          <div class="cat-goal-text">${todayFed}g fed today · ${pct}% of goal</div>
+          <div class="cat-actions">
+            <button class="btn btn-secondary btn-sm" onclick="editCat('${cat.id}')">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteCat('${cat.id}')">Delete</button>
+          </div>
+        </div>`;
+      grid.appendChild(card);
+    });
+  }
+
+  // Reads the current RFID tag from the ESP32 and fills the form field
+  async function scanRfidForCat() {
+    const msg = document.getElementById('rfidScanMsg');
+    msg.textContent = 'Scanning…';
+    try {
+      const res = await fetch('/data');
+      const data = await res.json();
+      const tag = data.rfid || 0;
+      if (tag && tag !== 0) {
+        const hex = '0x' + tag.toString(16).toUpperCase().padStart(8, '0');
+        document.getElementById('catRfid').value = hex;
+        // Check if already assigned to another cat
+        const existing = cats.find(c => c.rfid === hex && c.id !== editingCatId);
+        if (existing) {
+          msg.textContent = `⚠️ This tag is already assigned to ${existing.name}.`;
+        } else {
+          msg.textContent = `✓ Tag captured: ${hex}`;
+        }
+      } else {
+        msg.textContent = 'No tag detected — hold the tag near the reader and try again.';
+      }
+    } catch {
+      msg.textContent = 'Could not reach ESP32.';
+    }
+  }
+
+  function clearRfid() {
+    document.getElementById('catRfid').value = '';
+    document.getElementById('rfidScanMsg').textContent = 'Hold the RFID tag near the reader, then click Scan Now.';
+  }
+
+  function previewPhoto(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      pendingPhotoData = ev.target.result;
+      document.getElementById('photoPreviewWrap').innerHTML =
+        `<img class="photo-preview" src="${pendingPhotoData}">`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function saveCat() {
+    const name = document.getElementById('catName').value.trim();
+    const goal = parseInt(document.getElementById('catGoal').value);
+    const rfid = document.getElementById('catRfid').value.trim() || null;
+    const msg  = document.getElementById('catFormMsg');
+
+    if (!name) { msg.textContent = 'Please enter a name.'; return; }
+    if (!goal || goal < 1) { msg.textContent = 'Please enter a valid daily goal.'; return; }
+
+    // Check for duplicate RFID across other cats
+    if (rfid) {
+      const duplicate = cats.find(c => c.rfid === rfid && c.id !== editingCatId);
+      if (duplicate) { msg.textContent = `RFID tag already assigned to ${duplicate.name}.`; return; }
+    }
+
+    // Extract numeric RFID value (strip "0x" prefix if present)
+    const rfidNum = rfid ? parseInt(rfid, rfid.startsWith('0x') ? 16 : 10) : 0;
+
+    if (editingCatId) {
+      // Update locally only for now (ESP32 doesn't have an update endpoint yet)
+      const cat = cats.find(c => c.id === editingCatId);
+      cat.name = name;
+      cat.dailyGoal = goal;
+      cat.rfid = rfid;
+      if (pendingPhotoData) cat.photo = pendingPhotoData;
+      msg.textContent = 'Updated!';
+    } else {
+      // Save to ESP32 database first
+      msg.textContent = 'Saving…';
+      let espId = null;
+      try {
+        const body = new URLSearchParams({ name, rfid: rfidNum, weight: 0 });
+        const res  = await fetch('/addCat', { method: 'POST', body });
+        if (res.ok) {
+          const data = await res.json();
+          espId = data.id;
+        }
+      } catch {
+        // ESP32 unreachable — save locally only
+      }
+
+      cats.push({
+        id: espId ? String(espId) : String(Date.now()),
+        name,
+        dailyGoal: goal,
+        rfid,
+        espId,  // keep track of ESP32 DB id for future delete
+        photo: pendingPhotoData || null
+      });
+      msg.textContent = espId ? `Cat saved to ESP32 (id: ${espId})` : 'Cat saved locally (ESP32 offline)';
+    }
+
+    saveCats();
+    resetCatForm();
+    renderCats();
+    populateHistoryFilter();
+    setTimeout(() => { document.getElementById('catFormMsg').textContent = ''; }, 3000);
+  }
+
+  function editCat(id) {
+    const cat = cats.find(c => c.id === id);
+    editingCatId = id;
+    document.getElementById('catName').value = cat.name;
+    document.getElementById('catGoal').value = cat.dailyGoal;
+    document.getElementById('catRfid').value = cat.rfid || '';
+    pendingPhotoData = cat.photo || null;
+    if (cat.photo) {
+      document.getElementById('photoPreviewWrap').innerHTML =
+        `<img class="photo-preview" src="${cat.photo}">`;
+    }
+    document.getElementById('rfidScanMsg').textContent = cat.rfid
+      ? `Current tag: ${cat.rfid} — scan again to replace.`
+      : 'Hold the RFID tag near the reader, then click Scan Now.';
+    document.getElementById('form-title').textContent = 'Edit Cat';
+    document.getElementById('cancelEditBtn').style.display = 'inline-flex';
+    document.getElementById('catName').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  async function deleteCat(id) {
+    if (!confirm('Delete this cat profile?')) return;
+    const cat = cats.find(c => c.id === id);
+    // Remove from ESP32 database if it was saved there
+    if (cat && cat.espId) {
+      try { await fetch('/removeCat?id=' + cat.espId); } catch {}
+    }
+    cats = cats.filter(c => c.id !== id);
+    saveCats();
+    renderCats();
+    populateCatSelect();
+    populateHistoryFilter();
+  }
+
+  function cancelEdit() { resetCatForm(); }
+
+  function resetCatForm() {
+    editingCatId = null;
+    pendingPhotoData = null;
+    document.getElementById('catName').value = '';
+    document.getElementById('catGoal').value = '';
+    document.getElementById('catRfid').value = '';
+    document.getElementById('rfidScanMsg').textContent = 'Hold the RFID tag near the reader, then click Scan Now.';
+    document.getElementById('photoPreviewWrap').innerHTML =
+      `<div class="photo-upload-icon">🐱</div><p>Click to upload a photo</p>`;
+    document.getElementById('photoInput').value = '';
+    document.getElementById('form-title').textContent = 'Add a Cat';
+    document.getElementById('cancelEditBtn').style.display = 'none';
+    document.getElementById('catFormMsg').textContent = '';
+  }
+
+  /* ══════════════════════════════════════
+     HISTORY PAGE
+  ══════════════════════════════════════ */
+  function populateHistoryFilter() {
+    const sel = document.getElementById('filterCat');
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">All cats</option>';
+    cats.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.name;
+      sel.appendChild(opt);
+    });
+    if (prev) sel.value = prev;
+  }
+
+  function clearFilters() {
+    document.getElementById('filterDate').value = '';
+    document.getElementById('filterCat').value = '';
+    renderHistory();
+  }
+
+  function clearAllHistory() {
+    if (!confirm('Clear all feeding history? This cannot be undone.')) return;
+    history = [];
+    saveHistory();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const dateVal = document.getElementById('filterDate').value;
+    const catVal = document.getElementById('filterCat').value;
+    populateHistoryFilter();
+
+    let filtered = history;
+    if (dateVal) filtered = filtered.filter(e => e.ts.slice(0,10) === dateVal);
+    if (catVal) filtered = filtered.filter(e => e.catId === catVal);
+
+    // Stats
+    const total = filtered.reduce((s,e) => s + e.amount, 0);
+    const days = new Set(filtered.map(e => e.ts.slice(0,10))).size;
+    const avgPerDay = days > 0 ? Math.round(total / days) : 0;
+    document.getElementById('historyStats').innerHTML = `
+      <div class="stat-pill"><div class="val">${filtered.length}</div><div class="lbl">Feedings</div></div>
+      <div class="stat-pill"><div class="val">${total}g</div><div class="lbl">Total dispensed</div></div>
+      <div class="stat-pill"><div class="val">${avgPerDay}g</div><div class="lbl">Avg per day</div></div>`;
+
+    const list = document.getElementById('historyList');
+    const empty = document.getElementById('historyEmpty');
+    list.innerHTML = '';
+
+    if (filtered.length === 0) { empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+
+    // Group by date
+    const groups = {};
+    filtered.forEach(e => {
+      const day = e.ts.slice(0,10);
+      if (!groups[day]) groups[day] = [];
+      groups[day].push(e);
+    });
+
+    Object.keys(groups).sort((a,b) => b.localeCompare(a)).forEach(day => {
+      const dayLabel = document.createElement('div');
+      dayLabel.style.cssText = 'font-size:12px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);padding:4px 0 8px;margin-top:8px;';
+      dayLabel.textContent = formatDay(day);
+      list.appendChild(dayLabel);
+
+      groups[day].forEach(e => {
+        const time = new Date(e.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const el = document.createElement('div');
+        el.className = 'history-entry';
+        el.innerHTML = `
+          <div class="entry-icon">🍽️</div>
+          <div class="entry-info">
+            <div class="entry-cat">${escHtml(e.catName || 'Unknown')}</div>
+            <div class="entry-time">${time}</div>
+          </div>
+          <div><span class="entry-amount">${e.amount}</span><span class="entry-unit">g</span></div>`;
+        list.appendChild(el);
+      });
+    });
+  }
+
+  function formatDay(dateStr) {
+    const d = new Date(dateStr + 'T12:00:00');
+    const today = new Date().toISOString().slice(0,10);
+    const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+    if (dateStr === today) return 'Today';
+    if (dateStr === yesterday) return 'Yesterday';
+    return d.toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ══════════════════════════════════════
+     SCHEDULE PAGE
+  ══════════════════════════════════════ */
+
+  // Renders the full schedule page — one collapsible section per cat
+  function renderSchedule() {
+    const container = document.getElementById('scheduleCatList');
+    container.innerHTML = '';
+
+    if (cats.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">🐾</div><p>Add cats in the Cats page first, then set their schedules here.</p></div>`;
+      return;
+    }
+
+    cats.forEach(cat => {
+      const catSchedules = schedules[cat.id] || [];
+      const section = document.createElement('div');
+      section.className = 'schedule-cat-section';
+      section.id = 'sched-section-' + cat.id;
+
+      section.innerHTML = `
+        <div class="schedule-cat-header" onclick="toggleScheduleSection('${cat.id}')">
+          <div class="schedule-cat-title">
+            <span class="cat-name">${escHtml(cat.name)}</span>
+            <span class="cat-count">${catSchedules.length} schedule${catSchedules.length !== 1 ? 's' : ''}</span>
+          </div>
+          <span class="schedule-chevron open" id="chevron-${cat.id}">▼</span>
+        </div>
+        <div class="schedule-body" id="sched-body-${cat.id}">
+          <div class="schedule-list" id="sched-list-${cat.id}"></div>
+          <div class="schedule-add-form" id="sched-form-${cat.id}">
+            <h4>Add Schedule</h4>
+            <div class="schedule-type-toggle">
+              <button class="type-btn active" id="type-fixed-${cat.id}" onclick="setSchedType('${cat.id}','fixed')">🕐 Fixed Time</button>
+              <button class="type-btn" id="type-interval-${cat.id}" onclick="setSchedType('${cat.id}','interval')">🔄 Interval</button>
+            </div>
+            <div class="schedule-fields">
+              <div class="form-field" id="field-time-${cat.id}">
+                <label>Time</label>
+                <input type="time" id="sched-time-${cat.id}">
+              </div>
+              <div class="form-field" id="field-interval-${cat.id}" style="display:none;">
+                <label>Every (hours)</label>
+                <input type="number" id="sched-interval-${cat.id}" min="1" max="24" value="8" style="width:100%;">
+              </div>
+              <div class="form-field">
+                <label>Amount (g)</label>
+                <input type="number" id="sched-amount-${cat.id}" min="1" max="500" value="${Math.round(cat.dailyGoal/3)}" style="width:100%;">
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="addSchedule('${cat.id}')">Add</button>
+            </div>
+          </div>
+        </div>`;
+      container.appendChild(section);
+      renderScheduleList(cat.id);
+    });
+
+    updateScheduleStatus();
+  }
+
+  // Renders the list of schedules for one cat
+  function renderScheduleList(catId) {
+    const list = document.getElementById('sched-list-' + catId);
+    if (!list) return;
+    const catSchedules = schedules[catId] || [];
+    list.innerHTML = '';
+
+    if (catSchedules.length === 0) {
+      list.innerHTML = `<div class="schedule-empty">No schedules yet — add one below.</div>`;
+      return;
+    }
+
+    catSchedules.forEach((s, i) => {
+      const item = document.createElement('div');
+      item.className = 'schedule-item';
+      const label = s.type === 'fixed'
+        ? `Fixed time: ${formatTime12(s.time)}`
+        : `Every ${s.intervalHours}h`;
+      const icon = s.type === 'fixed' ? '🕐' : '🔄';
+      item.innerHTML = `
+        <div class="schedule-item-icon">${icon}</div>
+        <div class="schedule-item-info">
+          <div class="schedule-item-title">${label}</div>
+          <div class="schedule-item-sub">${s.type === 'fixed' ? 'Daily' : 'Repeating'}</div>
+        </div>
+        <div style="text-align:right;">
+          <span class="schedule-item-amount">${s.amount}</span>
+          <span class="schedule-item-unit">g</span>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="deleteSchedule('${catId}', ${i})">✕</button>`;
+      list.appendChild(item);
+    });
+
+    // Update count badge
+    const countEl = document.querySelector(`#sched-section-${catId} .cat-count`);
+    if (countEl) countEl.textContent = `${catSchedules.length} schedule${catSchedules.length !== 1 ? 's' : ''}`;
+  }
+
+  function toggleScheduleSection(catId) {
+    const body    = document.getElementById('sched-body-' + catId);
+    const chevron = document.getElementById('chevron-' + catId);
+    const header  = body.previousElementSibling;
+    const isOpen  = !body.style.display || body.style.display !== 'none';
+    body.style.display    = isOpen ? 'none' : 'block';
+    chevron.classList.toggle('open', !isOpen);
+    header.classList.toggle('collapsed', isOpen);
+  }
+
+  function setSchedType(catId, type) {
+    document.getElementById('type-fixed-' + catId).classList.toggle('active', type === 'fixed');
+    document.getElementById('type-interval-' + catId).classList.toggle('active', type === 'interval');
+    document.getElementById('field-time-' + catId).style.display     = type === 'fixed'    ? '' : 'none';
+    document.getElementById('field-interval-' + catId).style.display = type === 'interval' ? '' : 'none';
+  }
+
+  function addSchedule(catId) {
+    const type     = document.getElementById('type-fixed-' + catId).classList.contains('active') ? 'fixed' : 'interval';
+    const amount   = parseInt(document.getElementById('sched-amount-' + catId).value);
+    if (!amount || amount < 1) return;
+
+    if (!schedules[catId]) schedules[catId] = [];
+
+    if (type === 'fixed') {
+      const time = document.getElementById('sched-time-' + catId).value;
+      if (!time) { alert('Please enter a time.'); return; }
+      schedules[catId].push({ type: 'fixed', time, amount });
+      // Sort by time
+      schedules[catId].sort((a, b) => {
+        if (a.type !== 'fixed') return 1;
+        if (b.type !== 'fixed') return -1;
+        return a.time.localeCompare(b.time);
+      });
+    } else {
+      const intervalHours = parseInt(document.getElementById('sched-interval-' + catId).value);
+      if (!intervalHours || intervalHours < 1) return;
+      schedules[catId].push({ type: 'interval', intervalHours, amount });
+    }
+
+    saveSchedules();
+    renderScheduleList(catId);
+    pushSchedulesToESP32();
+  }
+
+  function deleteSchedule(catId, index) {
+    if (!schedules[catId]) return;
+    schedules[catId].splice(index, 1);
+    saveSchedules();
+    renderScheduleList(catId);
+    pushSchedulesToESP32();
+  }
+
+  // Formats "14:30" → "2:30 PM"
+  function formatTime12(time24) {
+    if (!time24) return '';
+    const [h, m] = time24.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12  = h % 12 || 12;
+    return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+  }
+
+  // Sends all schedules to the ESP32 via /setSchedule
+  async function pushSchedulesToESP32() {
+    try {
+      const payload = JSON.stringify(schedules);
+      await fetch('/setSchedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload
+      });
+    } catch {
+      // ESP32 unreachable — schedules still saved in localStorage
+    }
+  }
+
+  // Updates the clock status bar on the Schedule page
+  async function updateScheduleStatus() {
+    try {
+      const res  = await fetch('/data');
+      const data = await res.json();
+      const dot  = document.getElementById('scheduleStatusDot');
+      const txt  = document.getElementById('scheduleStatusText');
+      if (data.timesynced) {
+        dot.className = 'status-dot';
+        txt.textContent = `ESP32 clock synced — current time: ${data.currentTime}`;
+      } else {
+        dot.className = 'status-dot warn';
+        txt.textContent = 'ESP32 clock not synced — schedules may not fire accurately.';
+      }
+    } catch {
+      document.getElementById('scheduleStatusText').textContent = 'Could not reach ESP32.';
+    }
+  }
+
+
+  /* ══════════════════════════════════════
+     SD CARD LOGS + GRAPHS
+  ══════════════════════════════════════ */
+  let chartPlatformInstance = null;
+  let chartFoodInstance     = null;
+
+  async function loadSdLogs() {
+    const statusEl = document.getElementById('sdLogsStatus');
+    const list     = document.getElementById('sdLogsList');
+    const graphs   = document.getElementById('sdGraphs');
+    statusEl.textContent = 'Loading…';
+    list.innerHTML = '';
+    graphs.style.display = 'none';
+
+    const dateVal = document.getElementById('filterDate').value;
+    const catVal  = document.getElementById('filterCat').value;
+
+    let start = 0;
+    let end   = Math.floor(Date.now() / 1000);
+    if (dateVal) {
+      start = Math.floor(new Date(dateVal + 'T00:00:00').getTime() / 1000);
+      end   = Math.floor(new Date(dateVal + 'T23:59:59').getTime() / 1000);
+    }
+
+    let cat_id = 0;
+    if (catVal) {
+      const cat = cats.find(c => c.id === catVal);
+      if (cat && cat.espId) cat_id = cat.espId;
+    }
+
+    try {
+      const res  = await fetch(`/getEntries?start=${start}&end=${end}&cat=${cat_id}`);
+      const data = await res.json();
+
+      if (data.length === 0) {
+        statusEl.textContent = 'No entries found for the selected filters.';
+        return;
+      }
+
+      statusEl.textContent = `${data.length} entries from SD card`;
+
+      // ── Build chart data ──────────────────────────────
+      const labels         = data.map(e => new Date(e.time * 1000).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }));
+      const platformValues = data.map(e => parseFloat(e.platform_weight));
+      const foodValues     = data.map(e => parseFloat(e.food_weight));
+
+      graphs.style.display = 'grid';
+
+      // Destroy existing charts before redrawing
+      if (chartPlatformInstance) { chartPlatformInstance.destroy(); chartPlatformInstance = null; }
+      if (chartFoodInstance)     { chartFoodInstance.destroy();     chartFoodInstance = null;     }
+
+      const chartDefaults = {
+        type: 'line',
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              ticks: { color: '#7a8a7e', maxTicksLimit: 8, font: { size: 11 } },
+              grid:  { color: 'rgba(255,255,255,0.05)' }
+            },
+            y: {
+              ticks: { color: '#7a8a7e', font: { size: 11 } },
+              grid:  { color: 'rgba(255,255,255,0.05)' }
+            }
+          }
+        }
+      };
+
+      // Cat weight chart (blue)
+      chartPlatformInstance = new Chart(document.getElementById('chartPlatform'), {
+        ...chartDefaults,
+        data: {
+          labels,
+          datasets: [{
+            data: platformValues,
+            borderColor: '#74b3f0',
+            backgroundColor: 'rgba(116,179,240,0.08)',
+            borderWidth: 2,
+            pointRadius: data.length > 100 ? 0 : 3,
+            fill: true,
+            tension: 0.3
+          }]
+        }
+      });
+
+      // Food weight chart (orange)
+      chartFoodInstance = new Chart(document.getElementById('chartFood'), {
+        ...chartDefaults,
+        data: {
+          labels,
+          datasets: [{
+            data: foodValues,
+            borderColor: '#f4a261',
+            backgroundColor: 'rgba(244,162,97,0.08)',
+            borderWidth: 2,
+            pointRadius: data.length > 100 ? 0 : 3,
+            fill: true,
+            tension: 0.3
+          }]
+        }
+      });
+
+      // ── Raw entries list ──────────────────────────────
+      const groups = {};
+      data.forEach(e => {
+        const d = new Date(e.time * 1000).toISOString().slice(0, 10);
+        if (!groups[d]) groups[d] = [];
+        groups[d].push(e);
+      });
+
+      Object.keys(groups).sort((a,b) => b.localeCompare(a)).forEach(day => {
+        const dayLabel = document.createElement('div');
+        dayLabel.style.cssText = 'font-size:12px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);padding:4px 0 8px;margin-top:8px;';
+        dayLabel.textContent = formatDay(day);
+        list.appendChild(dayLabel);
+
+        groups[day].forEach(e => {
+          const time    = new Date(e.time * 1000).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+          const catName = cats.find(c => c.espId == e.assumed_cat_id)?.name || (e.assumed_cat_id ? `Cat #${e.assumed_cat_id}` : 'Unknown');
+          const rfidHex = e.rfid ? '0x' + e.rfid.toString(16).toUpperCase().padStart(8,'0') : '—';
+          const el = document.createElement('div');
+          el.className = 'history-entry';
+          el.innerHTML = `
+            <div class="entry-icon">🗃️</div>
+            <div class="entry-info">
+              <div class="entry-cat">${escHtml(catName)}</div>
+              <div class="entry-time">${time} · RFID: ${rfidHex}</div>
+            </div>
+            <div style="text-align:right;font-size:12px;color:var(--muted);">
+              <div>Food: <span style="color:var(--accent)">${e.food_weight}g</span></div>
+              <div>Weight: <span style="color:var(--blue)">${e.platform_weight}g</span></div>
+            </div>`;
+          list.appendChild(el);
+        });
+      });
+
+    } catch {
+      statusEl.textContent = 'Could not reach ESP32 — check connection.';
+    }
+  }
+
+  /* ══════════════════════════════════════
+     SYSTEM STATUS
+  ══════════════════════════════════════ */
+  function updateSystemStatus(data) {
+    const container = document.getElementById('systemStatus');
+    if (!container) return;
+    const pills = [
+      { label: data.wifiConnected ? 'WiFi Connected'    : 'WiFi Disconnected',   state: data.wifiConnected ? 'ok'  : 'err'  },
+      { label: data.timesynced    ? 'Clock Synced'      : 'Clock Not Synced',    state: data.timesynced    ? 'ok'  : 'warn' },
+      { label: data.dbConnected   ? 'SD Card Connected' : 'SD Card Disconnected',state: data.dbConnected   ? 'ok'  : 'warn' },
+      { label: data.dbWriteErr    ? 'DB Write Error'    : 'DB Writes OK',        state: data.dbWriteErr    ? 'err' : 'ok'   },
+    ];
+    container.innerHTML = pills.map(p =>
+      `<div class="sys-pill ${p.state}"><span class="sys-pill-dot"></span>${p.label}</div>`
+    ).join('');
+  }
+
+  populateCatSelect();
+  populateHistoryFilter();
+  setUnit(weightUnit);
+  setInterval(loadData, 1000);
+  loadData();
+</script>
+</body>
+</html>
